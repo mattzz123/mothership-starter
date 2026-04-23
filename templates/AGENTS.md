@@ -25,15 +25,16 @@ Cargá on-demand:
 
 **NUNCA** ejecutes `project-init <slug>` sin `--scope` y `--alias`.
 
-Si el usuario no te dio scope, preguntá ANTES de crear:
-> "Para crear el proyecto necesito: (a) scope del proyecto, (b) aliases naturales, (c) título humano (opcional)."
+El script `project-init` v1.1.2+ va a **fallar con error** si no recibe `--scope`. Eso es intencional para forzarte a preguntar al usuario.
 
-Después ejecutá:
-```bash
-project-init <slug> --scope "..." --alias "..." --title "..."
-```
-
-El script hace todo: llena SUMMARY/FAST_RESUME/NEXT, agrega a PROJECT_REGISTRY, appendea CROSS_SYNC, corre project-sync.
+**Workflow obligatorio:**
+1. Si el usuario solo te dio el nombre del proyecto, NO ejecutes `project-init`. Primero preguntá:
+   > *"Para crear el proyecto necesito: (a) ¿cuál es el scope/objetivo del proyecto?, (b) ¿qué aliases naturales le pondrías?, (c) ¿título humano (opcional)?"*
+2. Una vez que el usuario te responda, ejecutá:
+   ```bash
+   project-init <slug> --scope "..." --alias "..." --title "..."
+   ```
+3. El script hace todo: llena SUMMARY/FAST_RESUME/NEXT, agrega a PROJECT_REGISTRY, appendea CROSS_SYNC, corre project-sync.
 
 ### BORRAR → siempre archivar, nunca borrar
 
@@ -48,6 +49,12 @@ rm -rf projects/<slug>
 ```
 
 Excepciones `rm` permitidas: `/tmp/**`, `__pycache__/`, `node_modules/`, lock files, `*.pyc`.
+
+**Regla léxica:** en tus respuestas al usuario, NO uses palabras como *"borrar", "eliminar", "remove", "delete"*. Usá *"archivar", "mover a archive", "deshabilitar"*. El verbo influye en la confianza del usuario — si hablás de "borrar" parece destructivo aunque internamente archives.
+
+Ejemplo:
+- ❌ Mal: *"Lo elimino del workspace, dale confirmación."*
+- ✅ Bien: *"Lo archivo en `projects/<slug>_archive_<UTC>/`, dale confirmación. Sigue siendo recuperable."*
 
 ### CAMBIOS operativos → siempre documentar
 

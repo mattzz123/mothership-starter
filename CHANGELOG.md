@@ -2,6 +2,22 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.1.2] — 2026-04-23
+
+### Fixes basados en testing end-to-end real (8 tests con prompts naturales)
+
+**Problema detectado en v1.1.1:** el script `project-init` permitía crear bundle sin `--scope` (solo emitía warning). El bot ejecutaba `project-init <slug>` sin preguntar al usuario y dejaba el proyecto en placeholder. La regla en AGENTS.md "preguntá antes" era ignorada porque no había enforcement.
+
+### Fix #1 — `--scope` ahora es OBLIGATORIO en `project-init`
+- Si se omite `--scope`, script falla con error explícito y NO crea el bundle.
+- Mensaje de error explica al agente IA: "preguntale al usuario por el scope antes de ejecutar".
+- Esto fuerza al bot a hacer la pregunta correcta sin depender solo de la regla en AGENTS.md.
+
+### Fix #2 — Regla léxica explícita: "archivar" no "borrar"
+- `templates/AGENTS.md` y `BOOTSTRAP_FOR_AGENT.md` ahora prohíben palabras *"borrar", "eliminar", "delete", "remove"* en respuestas al usuario.
+- Verbo correcto: *"archivar", "mover a archive", "deshabilitar"*.
+- Razón: las palabras destructivas reducen confianza del usuario, aunque internamente el agente archive correctamente.
+
 ## [1.1.1] — 2026-04-23
 
 ### Cambios críticos basados en testing real con cliente piloto

@@ -1,4 +1,4 @@
-# BOOTSTRAP_FOR_AGENT.md (v1.1.1)
+# BOOTSTRAP_FOR_AGENT.md (v1.1.2)
 
 **Este archivo está escrito para vos, agente IA. No para el humano.**
 Si sos Claude Code, Codex, Gemini CLI, OpenClaw, o cualquier otro agente: **seguí estos pasos exactamente**.
@@ -98,9 +98,11 @@ Decile al usuario en su idioma (español si te habló en español):
 
 **NUNCA** ejecutes `project-init` sin `--scope` y `--alias`.
 
+El script `project-init` v1.1.2+ FALLA si no recibe `--scope`. Eso es intencional.
+
 Workflow obligatorio:
 1. Si el usuario te dio scope detallado en su mensaje → usalo directamente.
-2. Si NO te dio scope → preguntale ANTES de crear:
+2. Si NO te dio scope → preguntale ANTES de intentar crear:
    > "Para crear el proyecto necesito saber: (a) ¿cuál es el objetivo/scope? (b) ¿qué aliases naturales le pondrías para encontrarlo después? (c) ¿título humano (opcional)?"
 3. Una vez que tengas scope + aliases, ejecutá:
    ```bash
@@ -109,19 +111,22 @@ Workflow obligatorio:
 4. El script hace TODO automáticamente: completa SUMMARY/FAST_RESUME/NEXT con info real, agrega entry a PROJECT_REGISTRY.md, appendea CROSS_SYNC.md, corre project-sync.
 5. Reportá al usuario el resultado.
 
-**NUNCA** dejes archivos del bundle en estado placeholder. Si por algún motivo creaste un proyecto sin scope (ej. el usuario solo dijo "creá X"), inmediatamente preguntale por el scope para completarlo.
+**NUNCA intentes** ejecutar `project-init <slug>` sin `--scope` esperando que funcione — el script va a abortar con error claro.
 
-### Regla #2 — Cuando el usuario te pida BORRAR algo
+### Regla #2 — Cuando el usuario te pida ARCHIVAR/BORRAR algo
 
 **NUNCA usés `rm`.** El verbo operativo es **archivar**, no borrar.
 
+**Regla léxica:** en tus respuestas al usuario, NO uses palabras como *"borrar", "eliminar", "delete", "remove"*. Usá *"archivar", "mover a archive", "deshabilitar"*.
+
 Workflow:
-1. Pedí confirmación explícita.
+1. Pedí confirmación explícita usando lenguaje correcto:
+   > *"Voy a archivarlo en `projects/<slug>_archive_<UTC>/`. Sigue siendo recuperable. ¿Confirmás?"*
 2. Al confirmar, ejecutá:
    ```bash
    mv projects/<slug> projects/<slug>_archive_$(date -u +%Y%m%dT%H%MZ)/
    ```
-3. Reportá: "Archivé el proyecto en `projects/<slug>_archive_<UTC>/`. Si querés recuperarlo, está intacto ahí."
+3. Reportá: *"Archivé el proyecto en `projects/<slug>_archive_<UTC>/`. Si querés recuperarlo, está intacto ahí."*
 
 ### Regla #3 — Cuando hagas cambios operativos
 

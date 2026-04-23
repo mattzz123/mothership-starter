@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# project-init v1.1.1 — Crea bundle COMPLETO de proyecto con info real desde el primer comando.
+# project-init v1.1.2 — Crea bundle COMPLETO de proyecto con info real desde el primer comando.
 # Uso: project-init <slug> --scope "descripción" [--alias alias1] [--alias alias2] [--title "Título humano"]
+#
+# v1.1.2 cambio: --scope es OBLIGATORIO. Si se omite, el script falla con error claro.
+# Esto fuerza al agente IA a preguntar al usuario por scope ANTES de ejecutar.
 #
 # A diferencia de v1.0.0, este script hace TODO determinísticamente:
 #   1. Crea bundle desde templates
@@ -29,34 +32,66 @@ if [ -z "$WORKSPACE" ]; then
     fi
 fi
 
-if [ $# -lt 1 ]; then
+print_usage_and_exit() {
     cat >&2 <<EOF
 Uso: project-init <slug> --scope "descripción" [--alias alias1] [--alias alias2] [--title "Título"]
+
+REQUERIDO:
+  <slug>          Identificador del proyecto (letras minúsculas, números, guiones)
+  --scope "..."   Descripción del objetivo/scope del proyecto
+
+OPCIONAL:
+  --alias "..."   Alias natural (repetible para múltiples aliases)
+  --title "..."   Título humano legible (default: derivado del slug)
 
 Ejemplo:
   project-init bot-de-trading --scope "Bot trading BTC/USDT en Binance, paper mode" \\
     --alias "bot trading" --alias "trading bot" \\
     --title "Bot de Trading BTC/USDT"
 
-Si omitís --scope, se crea con placeholder y emite WARNING (no recomendado).
+NOTA PARA AGENTES IA:
+  Si el usuario solo te dio el nombre del proyecto sin scope, NO ejecutes este comando.
+  Primero preguntale al usuario:
+    - ¿Cuál es el scope/objetivo del proyecto?
+    - ¿Qué aliases naturales le pondría (ej. nombres cortos, formas de referirse)?
+    - ¿Título humano (opcional)?
+  Solo después de tener al menos --scope, ejecutá este comando.
 EOF
     exit 1
+}
+
+if [ $# -lt 1 ]; then
+    print_usage_and_exit
 fi
 
 SLUG="$1"; shift
 SCOPE=""
 TITLE=""
 ALIASES=()
-WARN_NO_SCOPE=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --scope) SCOPE="$2"; shift 2 ;;
         --title) TITLE="$2"; shift 2 ;;
         --alias) ALIASES+=("$2"); shift 2 ;;
-        *) echo "ERROR: flag desconocido: $1" >&2; exit 1 ;;
+        *) echo "ERROR: flag desconocido: $1" >&2; print_usage_and_exit ;;
     esac
 done
+
+# v1.1.2: --scope es OBLIGATORIO
+if [ -z "$SCOPE" ]; then
+    cat >&2 <<EOF
+ERROR: --scope es OBLIGATORIO en project-init v1.1.2+.
+
+No se puede crear un proyecto sin scope porque eso deja la documentación en placeholder
+y rompe la promesa del Mothership Method (memoria útil entre sesiones).
+
+Si sos un agente IA: preguntale al usuario por el scope ANTES de ejecutar este comando.
+Si sos el usuario: agregá --scope "descripción del proyecto" al comando.
+
+EOF
+    print_usage_and_exit
+fi
 
 # Validar slug (letras minúsculas, números, guiones)
 if ! [[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
@@ -64,14 +99,9 @@ if ! [[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
     exit 1
 fi
 
-# Defaults inteligentes
+# Default title si no se pasó
 if [ -z "$TITLE" ]; then
     TITLE=$(echo "$SLUG" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++)$i=toupper(substr($i,1,1))substr($i,2)}1')
-fi
-
-if [ -z "$SCOPE" ]; then
-    SCOPE="(scope no especificado al crear el proyecto — completar manualmente)"
-    WARN_NO_SCOPE=true
 fi
 
 BUNDLE="$WORKSPACE/projects/$SLUG"
@@ -309,11 +339,6 @@ echo "Workspace actualizado:"
 echo "  PROJECT_REGISTRY.md: entry agregada"
 echo "  CROSS_SYNC.md: entry agregada"
 [ -n "$SYNC_RESULT" ] && echo "  project-sync: $SYNC_RESULT"
-
-if [ "$WARN_NO_SCOPE" = true ]; then
-    echo ""
-    echo "⚠️  WARNING: scope vacío. Editá $BUNDLE/SUMMARY.md con info real cuanto antes."
-fi
 
 echo ""
 echo "Próximos pasos:"
