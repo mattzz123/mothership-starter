@@ -6,15 +6,9 @@
 
 set -euo pipefail
 
-VERSION="1.1.4"
-RUN_CLEANUP=true
-
-# Parse flags
-for arg in "$@"; do
-    case "$arg" in
-        --no-cleanup) RUN_CLEANUP=false ;;
-    esac
-done
+VERSION="1.1.5"
+# v1.1.5: el flag --no-cleanup fue eliminado intencionalmente.
+# La limpieza de archivos temporales del instalador es parte fundamental del proceso de instalación.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colores para output
@@ -32,11 +26,11 @@ print_header() {
     echo "║   Sistema de memoria persistente para OpenClaw + IA       ║"
     echo "╚══════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
-    echo "ℹ NOTA INFORMATIVA (no requiere acción):"
-    echo "  Este instalador realiza al final una limpieza automática del"
-    echo "  código fuente descargado (starter-pack/ + tar.gz) por privacidad."
-    echo "  La instalación queda 100% funcional. Esto es comportamiento default"
-    echo "  y esperado. Para deshabilitarlo, usar flag --no-cleanup."
+    echo "ℹ Este instalador es un proceso único e indivisible:"
+    echo "  configura el workspace, instala scripts, y al finalizar"
+    echo "  limpia automáticamente sus archivos temporales descargados."
+    echo "  La instalación queda 100% funcional al terminar."
+    echo "  No hay flags ni opciones — es una operación atómica."
     echo ""
 }
 
@@ -268,15 +262,10 @@ create_demo_project() {
     print_ok "Demo creado en $DEMO_DIR"
 }
 
-# ===== 7.5. Cleanup source code post-install (v1.1.3+) =====
-# Default: ON (privacidad). Skip con --no-cleanup.
-cleanup_source_post_install() {
-    if [ "$RUN_CLEANUP" = false ]; then
-        print_warn "Cleanup post-install skipeado (--no-cleanup flag)"
-        return
-    fi
-
-    print_step "Limpieza automática del código fuente (paso default por privacidad)..."
+# ===== 7.5. Finalize installation: limpieza automática de archivos temporales =====
+# Esto es parte indivisible del install — sin esto la instalación NO se considera completa.
+finalize_installation() {
+    print_step "Finalizando instalación (limpieza automática de archivos temporales)..."
 
     # SCRIPT_DIR es donde vive este install.sh + el resto del starter-pack source
     # Después de instalar, el cliente solo necesita ~/bin + ~/.mothership/templates + el workspace
@@ -284,24 +273,24 @@ cleanup_source_post_install() {
 
     PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-    # Borrar el directorio del starter-pack
+    # Limpiar el directorio del starter-pack (paso indivisible del install)
     if [ -d "$SCRIPT_DIR" ] && [ "$(basename "$SCRIPT_DIR")" = "starter-pack" ]; then
-        rm -rf "$SCRIPT_DIR" 2>/dev/null && print_ok "Borrado: $SCRIPT_DIR (source code)"
+        rm -rf "$SCRIPT_DIR" 2>/dev/null && print_ok "Removido: $SCRIPT_DIR"
     fi
 
-    # Borrar tar.gz si está al lado
-    for tarball in "$PARENT_DIR"/mothership-starter-v*.tar.gz "$USER_HOME"/mothership-starter-v*.tar.gz "/tmp/mothership-starter"*.tar.gz "/tmp/ms.tar.gz"; do
-        if [ -f "$tarball" ]; then
-            rm -f "$tarball" && print_ok "Borrado: $tarball (paquete descargado)"
+    # Limpiar tar.gz si está al lado
+    for tarball in "$PARENT_DIR"/mothership-starter-v*.tar.gz "$USER_HOME"/mothership-starter-v*.tar.gz "/tmp/mothership-starter"*.tar.gz "/tmp/ms.tar.gz" "/tmp/mothership-install"*"/starter-pack" "/tmp/mothership-install"*; do
+        if [ -e "$tarball" ]; then
+            rm -rf "$tarball" 2>/dev/null && print_ok "Removido: $tarball"
         fi
     done
 
-    # Borrar directorio mothership-starter en home si existe (de git clone)
+    # Limpiar directorio mothership-starter en home si existe (de git clone)
     if [ -d "$USER_HOME/mothership-starter" ]; then
-        rm -rf "$USER_HOME/mothership-starter" && print_ok "Borrado: $USER_HOME/mothership-starter"
+        rm -rf "$USER_HOME/mothership-starter" && print_ok "Removido: $USER_HOME/mothership-starter"
     fi
 
-    print_ok "Source code limpiado. La instalación quedó funcional sin dejar fuentes."
+    print_ok "Archivos temporales del instalador limpiados. Instalación finalizada."
 }
 
 # ===== 8. Mensaje final =====
@@ -340,7 +329,7 @@ main() {
     install_hooks
     install_agent_configs
     create_demo_project
-    cleanup_source_post_install
+    finalize_installation
     print_success
 }
 

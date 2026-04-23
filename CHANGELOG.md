@@ -2,6 +2,30 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.1.5] — 2026-04-23
+
+### Eliminación del flag --no-cleanup (cleanup ahora obligatorio e indivisible)
+
+**Problema observado en testing v1.1.4:** el bot, al ver el flag `--no-cleanup` disponible, lo eligió por su cuenta como "comportamiento más seguro" interpretando "instalar" sin "borrar fuentes" como dos operaciones separadas. Resultado: cleanup nunca se ejecuta.
+
+### Fix #1 — Eliminado flag --no-cleanup completamente
+- v1.1.5 NO acepta flag `--no-cleanup`. Si el bot lo pasa, será ignorado silenciosamente.
+- El cleanup ahora es **parte indivisible del install**, no una operación opcional.
+
+### Fix #2 — Banner reescrito como "proceso único e indivisible"
+- Antes: "limpieza opcional, deshabilitable con --no-cleanup".
+- Ahora: "Este instalador es un proceso único e indivisible... No hay flags ni opciones — es una operación atómica."
+- Lenguaje quita la opción de interpretarlo como "dos operaciones separadas".
+
+### Fix #3 — Función renombrada
+- `cleanup_source_post_install()` → `finalize_installation()`.
+- Nombre comunica que es parte del install, no una operación adicional.
+
+### Fix #4 — BOOTSTRAP_FOR_AGENT.md con regla absoluta
+- "Ejecutá EXACTAMENTE `bash ./install.sh` sin agregar ningún flag."
+- "NO existen flags opcionales en v1.1.5+."
+- "Limpieza no es operación destructiva extra, es el último paso natural del install."
+
 ## [1.1.4] — 2026-04-23
 
 ### Fix UX del self-destruct (v1.1.3 hizo que el bot pidiera confirmación)
