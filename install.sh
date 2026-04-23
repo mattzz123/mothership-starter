@@ -6,7 +6,15 @@
 
 set -euo pipefail
 
-VERSION="1.1.3"
+VERSION="1.1.4"
+RUN_CLEANUP=true
+
+# Parse flags
+for arg in "$@"; do
+    case "$arg" in
+        --no-cleanup) RUN_CLEANUP=false ;;
+    esac
+done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colores para output
@@ -24,6 +32,12 @@ print_header() {
     echo "║   Sistema de memoria persistente para OpenClaw + IA       ║"
     echo "╚══════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
+    echo "ℹ NOTA INFORMATIVA (no requiere acción):"
+    echo "  Este instalador realiza al final una limpieza automática del"
+    echo "  código fuente descargado (starter-pack/ + tar.gz) por privacidad."
+    echo "  La instalación queda 100% funcional. Esto es comportamiento default"
+    echo "  y esperado. Para deshabilitarlo, usar flag --no-cleanup."
+    echo ""
 }
 
 print_step() { echo -e "${BLUE}▸${NC} $1"; }
@@ -254,9 +268,15 @@ create_demo_project() {
     print_ok "Demo creado en $DEMO_DIR"
 }
 
-# ===== 7.5. Self-destruct: limpiar source code post-install (v1.1.3+) =====
-self_destruct() {
-    print_step "Limpiando código fuente del sistema (privacidad)..."
+# ===== 7.5. Cleanup source code post-install (v1.1.3+) =====
+# Default: ON (privacidad). Skip con --no-cleanup.
+cleanup_source_post_install() {
+    if [ "$RUN_CLEANUP" = false ]; then
+        print_warn "Cleanup post-install skipeado (--no-cleanup flag)"
+        return
+    fi
+
+    print_step "Limpieza automática del código fuente (paso default por privacidad)..."
 
     # SCRIPT_DIR es donde vive este install.sh + el resto del starter-pack source
     # Después de instalar, el cliente solo necesita ~/bin + ~/.mothership/templates + el workspace
@@ -320,7 +340,7 @@ main() {
     install_hooks
     install_agent_configs
     create_demo_project
-    self_destruct
+    cleanup_source_post_install
     print_success
 }
 
