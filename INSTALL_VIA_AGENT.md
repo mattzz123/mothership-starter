@@ -20,7 +20,7 @@ Esta es **la más fácil**. Funciona con Claude Code, Codex, Gemini CLI, OpenCla
 Por favor instalá el "Mothership Method" en mi máquina.
 
 Pasos:
-1. Hacé git clone https://github.com/USER/mothership-starter.git en mi home
+1. Hacé git clone https://github.com/mattzz123/mothership-starter.git en mi home
    (si no podés git clone, descargá el ZIP/tar.gz desde la página del repo)
 2. Entrá al directorio mothership-starter
 3. Leé el archivo BOOTSTRAP_FOR_AGENT.md ENTERO
@@ -41,7 +41,7 @@ Soy un usuario sin conocimiento técnico. Si algo falla, explicame en mis palabr
 Si te animás a abrir terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/USER/mothership-starter/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mattzz123/mothership-starter/main/install.sh | bash
 ```
 
 El instalador te va a hacer 1-2 preguntas. Acepta los defaults presionando Enter.
@@ -50,7 +50,7 @@ El instalador te va a hacer 1-2 preguntas. Acepta los defaults presionando Enter
 
 ## Forma 3 — Descarga manual
 
-1. Descargá el ZIP: `https://github.com/USER/mothership-starter/archive/main.zip`
+1. Descargá el ZIP: `https://github.com/mattzz123/mothership-starter/archive/main.zip`
 2. Descomprimí en cualquier carpeta.
 3. Abrí terminal en esa carpeta.
 4. Ejecutá: `bash install.sh`

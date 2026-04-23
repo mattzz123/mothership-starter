@@ -43,14 +43,12 @@ Reportá brevemente al usuario qué detectaste (en su idioma).
 Si **NO** estás dentro del directorio `mothership-starter/` ya:
 ```bash
 # Opción A — git clone (preferida)
-git clone https://github.com/USER/mothership-starter.git $HOME/mothership-starter
+git clone https://github.com/mattzz123/mothership-starter.git $HOME/mothership-starter
 cd $HOME/mothership-starter
 
 # Opción B — descarga directa
-curl -fsSL https://raw.githubusercontent.com/USER/mothership-starter/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mattzz123/mothership-starter/main/install.sh | bash
 ```
-
-> Reemplazá `USER` con el usuario/org real del repositorio cuando esté publicado.
 
 Si ya estás dentro del directorio, salteá este paso.
 

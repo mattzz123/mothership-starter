@@ -15,7 +15,7 @@ Tu IA deja de olvidarse de todo entre sesiones. Tus proyectos quedan documentado
 ```
 Por favor instalá el "Mothership Method" en mi máquina.
 
-1. git clone https://github.com/USER/mothership-starter en mi home
+1. git clone https://github.com/mattzz123/mothership-starter en mi home
 2. Entrá al directorio mothership-starter
 3. Leé el archivo BOOTSTRAP_FOR_AGENT.md ENTERO
 4. Seguí los pasos que describe
@@ -29,15 +29,13 @@ Eso es todo. Tu IA hace el resto.
 ### Forma 2 — Un comando en la terminal
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/USER/mothership-starter/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mattzz123/mothership-starter/main/install.sh | bash
 ```
-
-(Reemplazá `USER` con el nombre del repositorio cuando esté publicado.)
 
 ### Forma 3 — Manual
 
 ```bash
-git clone https://github.com/USER/mothership-starter.git
+git clone https://github.com/mattzz123/mothership-starter.git
 cd mothership-starter
 ./install.sh
 ```
