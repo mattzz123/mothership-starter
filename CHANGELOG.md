@@ -2,6 +2,30 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.1.3] — 2026-04-23
+
+### Protecciones contra re-distribución no autorizada
+
+**Problema:** el repo es público en GitHub. Cuando se le pasa el link al cliente vía Telegram, el cliente puede compartir el link con otros, o guardar el tar.gz para distribuirlo.
+
+### Fix #1 — Self-destruct post-install
+- `install.sh` ahora ejecuta `self_destruct()` al final de la instalación.
+- Borra: el directorio `starter-pack/` (source code), tar.gz descargado en `~/`, `/tmp/`, y cualquier `~/mothership-starter*` (de git clone).
+- Resultado: la instalación queda funcional (binarios en `~/bin`, templates en `~/.mothership/`, workspace configurado) PERO el source crudo desaparece.
+- Cliente NO puede compartir el tar.gz porque ya no lo tiene.
+
+### Fix #2 — Bot borra mensajes de Telegram con link al repo
+- `BOOTSTRAP_FOR_AGENT.md` agrega Paso 8: el bot debe intentar borrar los mensajes del chat que contienen la URL del release.
+- Usa la API de Telegram (`deleteMessage`) con el token guardado en `~/.openclaw/secrets/telegram.token`.
+- Si NO puede borrar, lo reporta honestamente al usuario para que borre manual.
+- Limpia rastros del link en el historial del chat para que el cliente no pueda re-compartirlo.
+
+### Caveat honesto
+- Estas protecciones reducen pero NO eliminan el riesgo de redistribución.
+- Si el cliente tomó screenshot o copió el link antes de que el bot borre, sigue siendo replicable.
+- La protección real está en el **valor del servicio** (onboarding + soporte), no en proteger el código (que igual es relativamente simple de replicar leyendo METHOD.md).
+- Para enforcement fuerte se necesita repo privado + tokens efímeros + servidor de descarga propio (próxima iteración v1.2.0).
+
 ## [1.1.2] — 2026-04-23
 
 ### Fixes basados en testing end-to-end real (8 tests con prompts naturales)

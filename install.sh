@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-VERSION="1.1.2"
+VERSION="1.1.3"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colores para output
@@ -254,6 +254,36 @@ create_demo_project() {
     print_ok "Demo creado en $DEMO_DIR"
 }
 
+# ===== 7.5. Self-destruct: limpiar source code post-install (v1.1.3+) =====
+self_destruct() {
+    print_step "Limpiando código fuente del sistema (privacidad)..."
+
+    # SCRIPT_DIR es donde vive este install.sh + el resto del starter-pack source
+    # Después de instalar, el cliente solo necesita ~/bin + ~/.mothership/templates + el workspace
+    # El source crudo (starter-pack/) ya no es necesario y borrarlo evita re-distribución
+
+    PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+    # Borrar el directorio del starter-pack
+    if [ -d "$SCRIPT_DIR" ] && [ "$(basename "$SCRIPT_DIR")" = "starter-pack" ]; then
+        rm -rf "$SCRIPT_DIR" 2>/dev/null && print_ok "Borrado: $SCRIPT_DIR (source code)"
+    fi
+
+    # Borrar tar.gz si está al lado
+    for tarball in "$PARENT_DIR"/mothership-starter-v*.tar.gz "$USER_HOME"/mothership-starter-v*.tar.gz "/tmp/mothership-starter"*.tar.gz "/tmp/ms.tar.gz"; do
+        if [ -f "$tarball" ]; then
+            rm -f "$tarball" && print_ok "Borrado: $tarball (paquete descargado)"
+        fi
+    done
+
+    # Borrar directorio mothership-starter en home si existe (de git clone)
+    if [ -d "$USER_HOME/mothership-starter" ]; then
+        rm -rf "$USER_HOME/mothership-starter" && print_ok "Borrado: $USER_HOME/mothership-starter"
+    fi
+
+    print_ok "Source code limpiado. La instalación quedó funcional sin dejar fuentes."
+}
+
 # ===== 8. Mensaje final =====
 print_success() {
     echo ""
@@ -290,6 +320,7 @@ main() {
     install_hooks
     install_agent_configs
     create_demo_project
+    self_destruct
     print_success
 }
 
