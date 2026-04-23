@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# project-sync — Backup local del bundle de proyecto
+# Uso: project-sync <slug>
+# Crea snapshot en $WORKSPACE/backups/<slug>/<timestamp>/
+
+set -euo pipefail
+
+WORKSPACE="${MOTHERSHIP_WORKSPACE:-}"
+if [ -z "$WORKSPACE" ]; then
+    for candidate in "$HOME/.openclaw/workspace" "$HOME/mothership-workspace"; do
+        [ -d "$candidate" ] && WORKSPACE="$candidate" && break
+    done
+fi
+if [ -z "$WORKSPACE" ] || [ ! -d "$WORKSPACE" ]; then
+    echo "ERROR: workspace no encontrado" >&2
+    exit 1
+fi
+
+if [ $# -lt 1 ]; then
+    echo "Uso: project-sync <slug>"
+    exit 1
+fi
+
+SLUG="$1"
+BUNDLE="$WORKSPACE/projects/$SLUG"
+
+if [ ! -d "$BUNDLE" ]; then
+    echo "ERROR: bundle no existe: $BUNDLE" >&2
+    exit 1
+fi
+
+TIMESTAMP="$(date -u +%Y%m%dT%H%MZ)"
+BACKUP_DIR="$WORKSPACE/backups/$SLUG/$TIMESTAMP"
+
+mkdir -p "$BACKUP_DIR"
+cp -r "$BUNDLE"/* "$BACKUP_DIR/" 2>/dev/null || true
+cp -r "$BUNDLE"/.??* "$BACKUP_DIR/" 2>/dev/null || true
+
+# Mantener solo últimos 10 backups
+BACKUPS_COUNT=$(ls -1 "$WORKSPACE/backups/$SLUG/" 2>/dev/null | wc -l)
+if [ "$BACKUPS_COUNT" -gt 10 ]; then
+    ls -1t "$WORKSPACE/backups/$SLUG/" | tail -n +11 | while read old; do
+        mv "$WORKSPACE/backups/$SLUG/$old" "$WORKSPACE/backups/$SLUG/${old}_archive" 2>/dev/null || true
+    done
+fi
+
+echo "✓ project synced: $SLUG → $BACKUP_DIR"

@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# doc-close — Valida el checklist de documentación post-cambio
+# Uso: doc-close <slug>
+# Verifica: FAST_RESUME/NEXT/LOG actualizados recientemente, CROSS_SYNC tiene entry reciente, budgets OK.
+
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+WORKSPACE="${MOTHERSHIP_WORKSPACE:-}"
+if [ -z "$WORKSPACE" ]; then
+    for candidate in "$HOME/.openclaw/workspace" "$HOME/mothership-workspace"; do
+        [ -d "$candidate" ] && WORKSPACE="$candidate" && break
+    done
+fi
+
+if [ $# -lt 1 ]; then
+    echo "Uso: doc-close <slug>"
+    exit 1
+fi
+
+SLUG="$1"
+BUNDLE="$WORKSPACE/projects/$SLUG"
+
+if [ ! -d "$BUNDLE" ]; then
+    echo -e "${RED}ERROR${NC}: bundle no existe: $BUNDLE"
+    exit 1
+fi
+
+echo ""
+echo -e "${BLUE}═══ doc-close validation: $SLUG ═══${NC}"
+echo ""
+
+WARNINGS=0
+ERRORS=0
+
+check_file_exists() {
+    local file="$1"
+    local required="$2"
+    if [ -f "$BUNDLE/$file" ]; then
+        echo -e "${GREEN}✓${NC} $file existe"
+        return 0
+    else
+        if [ "$required" = "required" ]; then
+            echo -e "${RED}✗${NC} $file FALTA (required)"
+            ERRORS=$((ERRORS+1))
+        else
+            echo -e "${YELLOW}⚠${NC} $file falta (opcional)"
+            WARNINGS=$((WARNINGS+1))
+        fi
+        return 1
+    fi
+}
+
+check_budget() {
+    local file="$1"
+    local max_bytes="$2"
+    local max_lines="$3"
+    local filepath="$BUNDLE/$file"
+    if [ ! -f "$filepath" ]; then return; fi
+    local bytes=$(wc -c < "$filepath")
+    local lines=$(wc -l < "$filepath")
+    if [ "$bytes" -le "$max_bytes" ] && [ "$lines" -le "$max_lines" ]; then
+        echo -e "${GREEN}✓${NC} $file dentro budget ($lines L / $bytes B)"
+    else
+        echo -e "${YELLOW}⚠${NC} $file EXCEDE budget ($lines L / $bytes B — max $max_lines L / $max_bytes B)"
+        WARNINGS=$((WARNINGS+1))
+    fi
+}
+
+check_recency() {
+    local file="$1"
+    local max_age_hours="$2"
+    local filepath="$BUNDLE/$file"
+    if [ ! -f "$filepath" ]; then return; fi
+    local now=$(date +%s)
+    local mtime=$(stat -c %Y "$filepath" 2>/dev/null || stat -f %m "$filepath" 2>/dev/null)
+    local age_hours=$(( (now - mtime) / 3600 ))
+    if [ "$age_hours" -le "$max_age_hours" ]; then
+        echo -e "${GREEN}✓${NC} $file actualizado hace ${age_hours}h"
+    else
+        echo -e "${YELLOW}⚠${NC} $file sin actualizar hace ${age_hours}h (esperado ≤${max_age_hours}h post-cambio)"
+        WARNINGS=$((WARNINGS+1))
+    fi
+}
+
+echo "1) Archivos obligatorios del bundle:"
+check_file_exists "FAST_RESUME.md" "required"
+check_file_exists "SUMMARY.md" "required"
+check_file_exists "NEXT.md" "required"
+check_file_exists "LOG.md" "required"
+check_file_exists "INDEX.md" "optional"
+check_file_exists "META.json" "optional"
+echo ""
+
+echo "2) Budgets (FAST_RESUME ≤3KB / SUMMARY ≤5KB / NEXT ≤2KB):"
+check_budget "FAST_RESUME.md" 3072 60
+check_budget "SUMMARY.md" 5120 100
+check_budget "NEXT.md" 2048 40
+echo ""
+
+echo "3) Recencia post-cambio (esperado ≤24h si hubo cambio hoy):"
+check_recency "FAST_RESUME.md" 24
+check_recency "LOG.md" 48
+check_recency "NEXT.md" 48
+echo ""
+
+echo "4) CROSS_SYNC.md tiene entry reciente del slug:"
+if [ -f "$WORKSPACE/CROSS_SYNC.md" ]; then
+    RECENT_ENTRIES=$(grep -i "$SLUG" "$WORKSPACE/CROSS_SYNC.md" | head -3)
+    if [ -n "$RECENT_ENTRIES" ]; then
+        echo -e "${GREEN}✓${NC} CROSS_SYNC tiene referencias a $SLUG"
+    else
+        echo -e "${YELLOW}⚠${NC} CROSS_SYNC no menciona $SLUG (¿olvidaste el paso 2 del checklist?)"
+        WARNINGS=$((WARNINGS+1))
+    fi
+else
+    echo -e "${YELLOW}⚠${NC} CROSS_SYNC.md no existe en workspace"
+    WARNINGS=$((WARNINGS+1))
+fi
+echo ""
+
+echo "5) project-sync backup:"
+if [ -d "$WORKSPACE/backups/$SLUG" ]; then
+    LAST_BACKUP=$(ls -1t "$WORKSPACE/backups/$SLUG" 2>/dev/null | head -1)
+    echo -e "${GREEN}✓${NC} último backup: $LAST_BACKUP"
+else
+    echo -e "${YELLOW}⚠${NC} nunca se corrió project-sync para este slug"
+    WARNINGS=$((WARNINGS+1))
+fi
+echo ""
+
+echo -e "${BLUE}═══ Resultado ═══${NC}"
+if [ "$ERRORS" -gt 0 ]; then
+    echo -e "${RED}✗ $ERRORS errores, $WARNINGS warnings${NC}"
+    echo "Completá los archivos faltantes antes de cerrar la sesión."
+    exit 2
+elif [ "$WARNINGS" -gt 0 ]; then
+    echo -e "${YELLOW}⚠ $WARNINGS warnings (0 errores)${NC}"
+    echo "Bundle ok pero revisá los warnings — puede que falten pasos del checklist."
+    exit 1
+else
+    echo -e "${GREEN}✓ Checklist completo${NC}"
+    # Auto-trigger project-sync
+    if [ -x "$(command -v project-sync)" ]; then
+        echo "Ejecutando project-sync..."
+        project-sync "$SLUG"
+    fi
+    exit 0
+fi

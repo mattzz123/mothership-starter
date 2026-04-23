@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# project-init — Crea un bundle de proyecto nuevo
+# Uso: project-init <slug> [--title "Título"] [--scope "descripción"]
+
+set -euo pipefail
+
+# Detectar workspace
+WORKSPACE="${MOTHERSHIP_WORKSPACE:-}"
+if [ -z "$WORKSPACE" ]; then
+    if [ -d "$HOME/.openclaw/workspace" ]; then
+        WORKSPACE="$HOME/.openclaw/workspace"
+    elif [ -d "$HOME/mothership-workspace" ]; then
+        WORKSPACE="$HOME/mothership-workspace"
+    elif [ -f "./AGENTS.md" ]; then
+        WORKSPACE="$(pwd)"
+    else
+        echo "ERROR: no se detectó workspace. Setea MOTHERSHIP_WORKSPACE o corré desde la raíz." >&2
+        exit 1
+    fi
+fi
+
+if [ $# -lt 1 ]; then
+    echo "Uso: project-init <slug> [--title TITLE] [--scope SCOPE]"
+    exit 1
+fi
+
+SLUG="$1"; shift
+TITLE="$SLUG"
+SCOPE=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --title) TITLE="$2"; shift 2 ;;
+        --scope) SCOPE="$2"; shift 2 ;;
+        *) echo "Flag desconocido: $1" >&2; exit 1 ;;
+    esac
+done
+
+# Validar slug (letras minúsculas, números, guiones)
+if ! [[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+    echo "ERROR: slug inválido ('$SLUG'). Solo letras minúsculas, números y guiones." >&2
+    exit 1
+fi
+
+BUNDLE="$WORKSPACE/projects/$SLUG"
+
+if [ -d "$BUNDLE" ]; then
+    echo "ERROR: ya existe $BUNDLE" >&2
+    exit 1
+fi
+
+# Encontrar el directorio de templates (instalado por install.sh en $HOME/.mothership)
+STARTER_DIR=""
+for candidate in \
+    "$HOME/.mothership/templates/project-bundle" \
+    "$HOME/mothership-starter/templates/project-bundle" \
+    "/opt/mothership-starter/templates/project-bundle" \
+    "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")/../templates/project-bundle"; do
+    if [ -d "$candidate" ] && [ -f "$candidate/FAST_RESUME.md" ]; then
+        STARTER_DIR="$candidate"
+        break
+    fi
+done
+
+if [ -z "$STARTER_DIR" ]; then
+    # Fallback: crear templates mínimos inline
+    echo "Templates no encontrados — usando fallback mínimo."
+    mkdir -p "$BUNDLE"
+    cat > "$BUNDLE/FAST_RESUME.md" <<EOF
+# $SLUG — FAST_RESUME
+
+## Current State
+- Bundle creado $(date -u +%Y-%m-%d).
+
+## Last Change
+- [$(date -u +%Y-%m-%d)] Bootstrap.
+
+## Resume Next
+1. Configurar scope y arquitectura en SUMMARY.md.
+EOF
+    cat > "$BUNDLE/SUMMARY.md" <<EOF
+# $SLUG — SUMMARY
+
+## Scope
+$SCOPE
+EOF
+    echo "# $SLUG — NEXT" > "$BUNDLE/NEXT.md"
+    cat > "$BUNDLE/LOG.md" <<EOF
+# $SLUG — LOG
+
+## $(date -u +%Y-%m-%d)
+
+### Bootstrap
+- Bundle creado vía project-init.
+EOF
+    echo "# $SLUG — INDEX" > "$BUNDLE/INDEX.md"
+else
+    # Copiar templates
+    mkdir -p "$BUNDLE"
+    cp "$STARTER_DIR"/*.md "$BUNDLE/"
+    cp "$STARTER_DIR"/META.json "$BUNDLE/" 2>/dev/null || true
+
+    # Sustituir {{SLUG}} en todos los archivos
+    for f in "$BUNDLE"/*.md "$BUNDLE"/META.json; do
+        if [ -f "$f" ]; then
+            sed -i.tmp "s|{{SLUG}}|$SLUG|g" "$f" && rm -f "${f}.tmp"
+        fi
+    done
+fi
+
+# META.json si existe
+if [ -f "$BUNDLE/META.json" ]; then
+    NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    # Update title + scope + timestamps via Python (más confiable que sed para JSON)
+    if command -v python3 &> /dev/null; then
+        python3 - <<EOF
+import json
+with open("$BUNDLE/META.json") as f:
+    meta = json.load(f)
+meta["title"] = "$TITLE"
+meta["scope"] = "$SCOPE"
+meta["created_at"] = "$NOW"
+meta["updated_at"] = "$NOW"
+with open("$BUNDLE/META.json", "w") as f:
+    json.dump(meta, f, indent=2)
+EOF
+    fi
+fi
+
+# Agregar a PROJECT_REGISTRY.md
+REGISTRY="$WORKSPACE/PROJECT_REGISTRY.md"
+if [ -f "$REGISTRY" ]; then
+    if ! grep -q "^### $SLUG$" "$REGISTRY"; then
+        cat >> "$REGISTRY" <<EOF
+
+### $SLUG
+- Scope: $SCOPE
+- Bundle root: \`projects/$SLUG\`
+- Sensitivity: \`operations\`
+- Aliases: (agregar según se necesite)
+EOF
+    fi
+fi
+
+echo "✓ Proyecto creado: $BUNDLE"
+echo ""
+echo "Próximos pasos:"
+echo "  1. Editá $BUNDLE/SUMMARY.md con el scope real."
+echo "  2. Editá $BUNDLE/FAST_RESUME.md con el estado inicial."
+echo "  3. Empezá a trabajar. Ejecutá 'doc-close $SLUG' después de cada cambio."

@@ -1,0 +1,26 @@
+# Backups generados durante uso
+*.bak.*
+
+# Archivos temporales de sed/awk
+*.tmp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editores
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Node (si alguien agrega tooling JS)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Distribución
+*.tar.gz
+*.zip

@@ -1,0 +1,18 @@
+{
+  "slug": "{{SLUG}}",
+  "title": "",
+  "scope": "",
+  "aliases": [],
+  "sensitivity": "operations",
+  "canonical_node": "main",
+  "reasoning_floor": "medium",
+  "default_effort": "medium",
+  "repo_root": "",
+  "runtime_roots": [],
+  "backup_roots": [],
+  "backup_secret_paths": [],
+  "external_services": [],
+  "stable_url": "",
+  "created_at": "",
+  "updated_at": ""
+}

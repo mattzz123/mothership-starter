@@ -1,0 +1,18 @@
+{
+  "slug": "mi-primer-proyecto",
+  "title": "Mi Primer Proyecto — Demo del Mothership Method",
+  "scope": "Proyecto demo para experimentar con el método de memoria persistente.",
+  "aliases": ["demo", "primer", "mi primer proyecto"],
+  "sensitivity": "operations",
+  "canonical_node": "main",
+  "reasoning_floor": "medium",
+  "default_effort": "medium",
+  "repo_root": "",
+  "runtime_roots": [],
+  "backup_roots": [],
+  "backup_secret_paths": [],
+  "external_services": [],
+  "stable_url": "",
+  "created_at": "2026-04-22T00:00:00Z",
+  "updated_at": "2026-04-22T00:00:00Z"
+}
