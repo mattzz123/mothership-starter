@@ -1,85 +1,104 @@
-# AGENTS.md — Workspace Rules
+# AGENTS.md — Workspace Rules (v1.1.1 light)
 
-Reglas que cada sesión de agente (Claude Code / Codex / Gemini) sigue al arrancar.
+Reglas que cada sesión de agente (Claude Code / Codex / Gemini / OpenClaw / etc.) sigue al arrancar.
 
-## Slim Boot (mandatorio)
+## Slim Boot
 
-Antes de cualquier trabajo sustantivo, lee exactamente estos 2 archivos:
-1. `AGENTS.md` — este archivo.
-2. `CROSS_SYNC.md` — últimas entradas operacionales (ya trimmeado).
+Antes de cualquier trabajo sustantivo, leé estos 2 archivos:
+1. `AGENTS.md` (este archivo)
+2. `CROSS_SYNC.md` (últimas entradas operacionales)
 
-**Carga on-demand (no preload):**
-- `ARTIFACT_INDEX.md` — solo cuando buscás artifacts/scripts.
-- `PROJECT_REGISTRY.md` — solo cuando el usuario nombra un proyecto.
-- `projects/<slug>/FAST_RESUME.md` — primero al cargar un proyecto.
-- `projects/<slug>/SUMMARY.md`, `INDEX.md`, `NEXT.md` — solo si FAST_RESUME es insuficiente.
+Cargá on-demand:
+- `PROJECT_REGISTRY.md` cuando el usuario nombre un proyecto.
+- `projects/<slug>/FAST_RESUME.md` al cargar un proyecto específico.
+- `SUMMARY.md`, `LOG.md` solo si FAST_RESUME es insuficiente.
 
-**Después del boot, siempre preguntá:** *"¿En qué proyecto desea trabajar hoy?"* si está ambiguo.
+## Cargar un proyecto
 
-## Project loading
+1. Resolver slug vía `project-resolve <nombre>`.
+2. Leer `projects/<slug>/FAST_RESUME.md` (≤3KB).
+3. Solo si necesario: `SUMMARY` → `LOG`.
 
-1. Resolver slug vía `PROJECT_REGISTRY.md` o el script `project-resolve <name>`.
-2. Cargar `projects/<slug>/FAST_RESUME.md` primero (≤3KB).
-3. Solo si necesario: `SUMMARY` → `INDEX` → `NEXT` → `LOG`.
+## Reglas de oro
 
-## Doc Checklist (mandatorio post-cambio)
+### CREAR proyecto → siempre con scope completo
 
-Después de CUALQUIER cambio operativo (bundle, script, config), ejecutar los 9 pasos:
+**NUNCA** ejecutes `project-init <slug>` sin `--scope` y `--alias`.
 
-1. Backup `.bak.<UTC>` de cada archivo modificado.
-2. Append entry a `CROSS_SYNC.md`: Actor / Scope / Change / Reason / Validation / Rollback.
-3. Update `ARTIFACT_INDEX.md` si se creó/movió artifact.
-4. Update `projects/<slug>/FAST_RESUME.md` (estado actual, ≤3KB).
-5. Append a `projects/<slug>/LOG.md` (timestamp + qué + por qué + validation + rollback).
-6. Realinear `projects/<slug>/NEXT.md` (completados → LOG).
-7. Update `projects/<slug>/SUMMARY.md` solo si cambió arquitectura estable.
-8. Ejecutar `project-sync <slug>` para backup.
-9. Notes del día en `memory/YYYY-MM-DD.md` (opcional).
+Si el usuario no te dio scope, preguntá ANTES de crear:
+> "Para crear el proyecto necesito: (a) scope del proyecto, (b) aliases naturales, (c) título humano (opcional)."
 
-**Excepción:** trabajo efímero en `/tmp` o dry-runs sin impacto real.
+Después ejecutá:
+```bash
+project-init <slug> --scope "..." --alias "..." --title "..."
+```
 
-**Tool:** `doc-close <slug>` valida el checklist completo.
+El script hace todo: llena SUMMARY/FAST_RESUME/NEXT, agrega a PROJECT_REGISTRY, appendea CROSS_SYNC, corre project-sync.
 
-## Budget discipline
+### BORRAR → siempre archivar, nunca borrar
 
-| Archivo | Budget |
+**NUNCA uses `rm`** sobre archivos del workspace. El verbo es **archivar**.
+
+```bash
+# ✅ Correcto
+mv projects/<slug> projects/<slug>_archive_$(date -u +%Y%m%dT%H%MZ)/
+
+# ❌ Prohibido
+rm -rf projects/<slug>
+```
+
+Excepciones `rm` permitidas: `/tmp/**`, `__pycache__/`, `node_modules/`, lock files, `*.pyc`.
+
+### CAMBIOS operativos → siempre documentar
+
+Después de modificar archivos de un bundle:
+1. Appendea entry timestamped a `projects/<slug>/LOG.md`.
+2. Si el cambio es estructural (decisión de arquitectura, stack, scope), appendea también a `CROSS_SYNC.md` raíz.
+3. Ejecutá `doc-close <slug>` para validar.
+
+### EDITAR archivos del workspace → backup primero
+
+Antes de editar `AGENTS.md`, `CROSS_SYNC.md`, `PROJECT_REGISTRY.md`, `ARTIFACT_INDEX.md`, `ARCHIVE_POLICY.md`:
+```bash
+cp <archivo> <archivo>.bak.$(date -u +%Y%m%dT%H%MZ)
+```
+
+### HONESTIDAD operativa
+
+- **NUNCA** afirmes que ejecutaste algo sin verificarlo.
+- Si falla, reportalo. No pretendas éxito.
+- Si no sabés cómo, preguntá. No inventes.
+
+## Budgets de tamaño
+
+| Archivo | Budget | Si excede |
+|---|---|---|
+| `FAST_RESUME.md` | ≤3KB / ≤60L | Migrar oldest content a `LOG.md` |
+| `SUMMARY.md` | ≤5KB / ≤100L | Migrar oldest content a `LOG.md` |
+| `NEXT.md` | ≤2KB / ≤40L | Migrar completados a `LOG.md` |
+| `LOG.md` | sin límite | Append-only forever |
+
+## Comandos disponibles
+
+| Comando | Para qué |
 |---|---|
-| `FAST_RESUME.md` | ≤3KB / ≤60 líneas |
-| `SUMMARY.md` | ≤5KB / ≤100 líneas |
-| `NEXT.md` | ≤2KB / ≤40 líneas |
-| `LOG.md` | sin límite |
+| `project-init <slug> --scope "..." --alias "..." --title "..."` | Crear proyecto completo |
+| `project-resolve <nombre>` | Resolver alias a slug canonical |
+| `project-sync <slug>` | Backup local del bundle |
+| `doc-close <slug>` | Validar checklist de documentación |
 
-**Si excede:** migrar oldest content a `LOG.md` con header `## <file-name> archive migrated YYYY-MM-DDTHH:MMZ`.
+## Multi-agente (opcional)
 
-## Archive Policy (mandatorio)
+Si el usuario tiene múltiples agentes CLI (Claude + Codex + Gemini + OpenClaw), todos comparten este workspace. Cuando hacés un cambio, identificate al appendear a `CROSS_SYNC.md`:
+- `Actor: Claude Code (claude-opus-4-7)`
+- `Actor: Codex CLI`
+- `Actor: Gemini CLI`
+- `Actor: OpenClaw + Codex (Jarvis 2.0)`
 
-Nunca `rm`. Siempre archivar. Los 7 patterns canónicos están en `ARCHIVE_POLICY.md`. Excepciones únicas: `/tmp/**`, `__pycache__/`, `node_modules/`, lock files.
-
-## Tool output discipline
-
-- Antes de leer archivo grande: `wc -c` primero.
-- ≤3KB: leer completo.
-- 3-50KB: `head -N` / `tail -N` / `sed -n 'a,bp'`.
-- >50KB: `grep`/`rg` con keywords específicos.
-- Logs: `tail -100` o `grep ERROR | tail -50`.
-- JSON: `jq '.path'` no dump completo.
-
-## Coordinación multi-agente
-
-Si tenés varios agentes CLI (Claude Code + Codex + Gemini), todos leen el mismo `CROSS_SYNC.md`. Cada cambio cross-agent va con timestamp + actor:
-
-```
-### [YYYY-MM-DD HH:MM UTC] <slug>: <descripción corta>
-- Actor: <agente>
-- Scope: ...
-- Change: ...
-- Reason: ...
-- Validation: ...
-- Rollback: ...
-```
+Esto permite que otros agentes te identifiquen si tu cambio rompe algo.
 
 ## Safety
 
 - Sin escribir secrets en chat, memory, o docs. Referenciar archivo controlador.
-- Antes de operación destructiva: confirmar con usuario.
+- Antes de operación destructiva: confirmar con el usuario.
 - Backup pre-edit obligatorio (`.bak.<UTC>`).

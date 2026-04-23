@@ -2,6 +2,37 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.1.1] — 2026-04-23
+
+### Cambios críticos basados en testing real con cliente piloto
+
+**Problema detectado en v1.1.0:** cuando el usuario pedía "creá un proyecto X" sin más detalle, el bot ejecutaba `project-init` que solo creaba bundle vacío con templates. El bot luego NO completaba SUMMARY/FAST_RESUME/CROSS_SYNC manualmente (interpretaba selectivamente las reglas del método).
+
+### Fix #1 — `project-init` rediseñado para hacer TODO determinísticamente
+- Acepta flags `--scope`, `--alias`, `--title`.
+- Llena SUMMARY.md, FAST_RESUME.md, NEXT.md, LOG.md, INDEX.md, META.json con info real (no placeholders).
+- Agrega entry a PROJECT_REGISTRY.md con scope + aliases.
+- Appendea entry a CROSS_SYNC.md documentando la creación.
+- Ejecuta project-sync automáticamente.
+- Si se omite `--scope`, emite WARNING explícito.
+
+### Fix #2 — `BOOTSTRAP_FOR_AGENT.md` con playbook obligatorio
+- Reglas de oro explícitas: cuando crees proyecto, NUNCA omitir scope/alias.
+- Workflow obligatorio: preguntar primero, después ejecutar con flags.
+- Verbo operativo: "archivar" siempre, NUNCA "borrar".
+- Backup pre-edit mandatorio.
+- Honestidad operativa: NUNCA pretender éxito sin verificación.
+
+### Fix #3 — `templates/AGENTS.md` mucho más conciso
+- Saca 9-step doc checklist (delegado al script `project-init` y `doc-close`).
+- Mantiene: cómo cargar bundle, reglas de oro, comandos, budgets, safety.
+- 60% menos texto. Más fácil de seguir para agente típico.
+- "NUNCA borro, siempre archivo" explícito.
+
+### Mejoras menores
+- Templates project-bundle: placeholders más claros sobre qué llenar.
+- Mensajes de project-init: salida estructurada con detalles del proyecto creado.
+
 ## [1.1.0] — 2026-04-22
 
 ### Agregado

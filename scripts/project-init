@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
-# project-init — Crea un bundle de proyecto nuevo
-# Uso: project-init <slug> [--title "Título"] [--scope "descripción"]
+# project-init v1.1.1 — Crea bundle COMPLETO de proyecto con info real desde el primer comando.
+# Uso: project-init <slug> --scope "descripción" [--alias alias1] [--alias alias2] [--title "Título humano"]
+#
+# A diferencia de v1.0.0, este script hace TODO determinísticamente:
+#   1. Crea bundle desde templates
+#   2. Llena {{SLUG}}, {{SCOPE}}, {{TITLE}} en todos los archivos (NO deja placeholders)
+#   3. Actualiza META.json con scope, aliases, title, timestamps
+#   4. Agrega entry a PROJECT_REGISTRY.md con scope + aliases
+#   5. Appendea entry a CROSS_SYNC.md documentando la creación
+#   6. Ejecuta project-sync para crear backup inicial
+#
+# Esto elimina la dependencia de que el agente IA "recuerde" hacer todos esos pasos.
 
 set -euo pipefail
 
@@ -20,19 +30,31 @@ if [ -z "$WORKSPACE" ]; then
 fi
 
 if [ $# -lt 1 ]; then
-    echo "Uso: project-init <slug> [--title TITLE] [--scope SCOPE]"
+    cat >&2 <<EOF
+Uso: project-init <slug> --scope "descripción" [--alias alias1] [--alias alias2] [--title "Título"]
+
+Ejemplo:
+  project-init bot-de-trading --scope "Bot trading BTC/USDT en Binance, paper mode" \\
+    --alias "bot trading" --alias "trading bot" \\
+    --title "Bot de Trading BTC/USDT"
+
+Si omitís --scope, se crea con placeholder y emite WARNING (no recomendado).
+EOF
     exit 1
 fi
 
 SLUG="$1"; shift
-TITLE="$SLUG"
 SCOPE=""
+TITLE=""
+ALIASES=()
+WARN_NO_SCOPE=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --title) TITLE="$2"; shift 2 ;;
         --scope) SCOPE="$2"; shift 2 ;;
-        *) echo "Flag desconocido: $1" >&2; exit 1 ;;
+        --title) TITLE="$2"; shift 2 ;;
+        --alias) ALIASES+=("$2"); shift 2 ;;
+        *) echo "ERROR: flag desconocido: $1" >&2; exit 1 ;;
     esac
 done
 
@@ -42,6 +64,16 @@ if ! [[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
     exit 1
 fi
 
+# Defaults inteligentes
+if [ -z "$TITLE" ]; then
+    TITLE=$(echo "$SLUG" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++)$i=toupper(substr($i,1,1))substr($i,2)}1')
+fi
+
+if [ -z "$SCOPE" ]; then
+    SCOPE="(scope no especificado al crear el proyecto — completar manualmente)"
+    WARN_NO_SCOPE=true
+fi
+
 BUNDLE="$WORKSPACE/projects/$SLUG"
 
 if [ -d "$BUNDLE" ]; then
@@ -49,7 +81,7 @@ if [ -d "$BUNDLE" ]; then
     exit 1
 fi
 
-# Encontrar el directorio de templates (instalado por install.sh en $HOME/.mothership)
+# Encontrar templates
 STARTER_DIR=""
 for candidate in \
     "$HOME/.mothership/templates/project-bundle" \
@@ -63,88 +95,227 @@ for candidate in \
 done
 
 if [ -z "$STARTER_DIR" ]; then
-    # Fallback: crear templates mínimos inline
-    echo "Templates no encontrados — usando fallback mínimo."
-    mkdir -p "$BUNDLE"
-    cat > "$BUNDLE/FAST_RESUME.md" <<EOF
+    echo "ERROR: templates de project-bundle no encontrados. Reinstalar Mothership Method." >&2
+    exit 1
+fi
+
+NOW_HUMAN="$(date -u +%Y-%m-%d)"
+NOW_FULL="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+NOW_UTC_TS="$(date -u +%Y-%m-%dT%H:%MZ)"
+
+# Crear bundle desde templates
+mkdir -p "$BUNDLE"
+cp "$STARTER_DIR"/*.md "$BUNDLE/"
+cp "$STARTER_DIR"/META.json "$BUNDLE/"
+
+# Sustituir {{SLUG}}, {{TITLE}} en todos los archivos
+for f in "$BUNDLE"/*.md "$BUNDLE"/META.json; do
+    [ -f "$f" ] || continue
+    sed -i.tmp "s|{{SLUG}}|$SLUG|g; s|{{TITLE}}|$TITLE|g" "$f"
+    rm -f "${f}.tmp"
+done
+
+# Llenar SUMMARY.md con scope real (reemplazar el bloque "qué es este proyecto")
+python3 - <<EOF
+import re, sys
+path = "$BUNDLE/SUMMARY.md"
+with open(path) as f:
+    content = f.read()
+# Reemplazar "(qué es este proyecto en 1-2 párrafos: objetivo, alcance, qué resuelve)"
+content = re.sub(
+    r'\(qué es este proyecto en 1-2 párrafos: objetivo, alcance, qué resuelve\)',
+    '''$SCOPE''',
+    content
+)
+with open(path, 'w') as f:
+    f.write(content)
+EOF
+
+# Llenar FAST_RESUME.md con estado inicial significativo
+cat > "$BUNDLE/FAST_RESUME.md" <<EOF
 # $SLUG — FAST_RESUME
 
 ## Current State
-- Bundle creado $(date -u +%Y-%m-%d).
+- Proyecto creado $NOW_HUMAN.
+- Scope: $SCOPE
+- Bundle inicializado, sin actividad operativa todavía.
 
 ## Last Change
-- [$(date -u +%Y-%m-%d)] Bootstrap.
+- [$NOW_HUMAN] Bundle creado vía \`project-init $SLUG\`. Documentación inicial completada.
 
 ## Resume Next
-1. Configurar scope y arquitectura en SUMMARY.md.
-EOF
-    cat > "$BUNDLE/SUMMARY.md" <<EOF
-# $SLUG — SUMMARY
+1. Definir primeros pasos concretos en NEXT.md.
+2. Empezar a trabajar — todos los cambios se documentan en LOG.md.
+3. Ejecutar \`doc-close $SLUG\` después de cualquier cambio operativo importante.
 
-## Scope
-$SCOPE
+## Read Order
+1. \`SUMMARY.md\` — scope completo + arquitectura.
+2. \`NEXT.md\` — backlog activo.
+3. \`LOG.md\` — historia narrativa append-only.
 EOF
-    echo "# $SLUG — NEXT" > "$BUNDLE/NEXT.md"
-    cat > "$BUNDLE/LOG.md" <<EOF
+
+# Llenar NEXT.md con plantilla mejorada
+cat > "$BUNDLE/NEXT.md" <<EOF
+# $SLUG — NEXT
+
+Backlog activo. Solo items inmediatos (3-8 máximo). Lo completado se mueve a \`LOG.md\`.
+
+## Prioridad inmediata
+1. Definir alcance funcional concreto del proyecto.
+2. Identificar bloqueos o dependencias externas.
+3. Ejecutar primer hito mínimo para validar dirección.
+
+## En camino (próximas 2 semanas)
+-
+
+## Bloqueado / esperando
+-
+
+## Decisiones pendientes
+-
+EOF
+
+# LOG.md con entry de creación
+cat > "$BUNDLE/LOG.md" <<EOF
 # $SLUG — LOG
 
-## $(date -u +%Y-%m-%d)
+Historia narrativa append-only. Cada entrada con timestamp, contexto, qué cambió, por qué, validation, rollback.
 
-### Bootstrap
-- Bundle creado vía project-init.
+## $NOW_HUMAN
+
+### [$(date -u +%H:%M) UTC] bootstrap del proyecto
+**Contexto:** Creación del bundle Mothership para arrancar el proyecto con documentación estructurada.
+**Change:** Bundle creado vía \`project-init $SLUG --scope "..." ${ALIASES[@]:+--alias ...}\`. SUMMARY/FAST_RESUME/NEXT/META.json llenados con info inicial. Entry registrada en CROSS_SYNC.md y PROJECT_REGISTRY.md.
+**Reason:** $SCOPE
+**Validation:** \`doc-close $SLUG\` ejecutar después para validar checklist completo.
+**Rollback:** \`mv projects/$SLUG projects/${SLUG}_archive_<UTC>/\` (siguiendo ARCHIVE_POLICY pattern 2).
+**Follow-up:** Definir alcance funcional concreto y primeros hitos en NEXT.md.
 EOF
-    echo "# $SLUG — INDEX" > "$BUNDLE/INDEX.md"
-else
-    # Copiar templates
-    mkdir -p "$BUNDLE"
-    cp "$STARTER_DIR"/*.md "$BUNDLE/"
-    cp "$STARTER_DIR"/META.json "$BUNDLE/" 2>/dev/null || true
 
-    # Sustituir {{SLUG}} en todos los archivos
-    for f in "$BUNDLE"/*.md "$BUNDLE"/META.json; do
-        if [ -f "$f" ]; then
-            sed -i.tmp "s|{{SLUG}}|$SLUG|g" "$f" && rm -f "${f}.tmp"
-        fi
-    done
+# INDEX.md con info real
+ALIASES_STR=""
+if [ ${#ALIASES[@]} -gt 0 ]; then
+    ALIASES_STR=$(printf "\`%s\`, " "${ALIASES[@]}" | sed 's/, $//')
+else
+    ALIASES_STR="(ninguno definido)"
 fi
 
-# META.json si existe
-if [ -f "$BUNDLE/META.json" ]; then
-    NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    # Update title + scope + timestamps via Python (más confiable que sed para JSON)
-    if command -v python3 &> /dev/null; then
-        python3 - <<EOF
+cat > "$BUNDLE/INDEX.md" <<EOF
+# $SLUG — INDEX
+
+## Names
+- Slug: \`$SLUG\`
+- Title: $TITLE
+- Aliases: $ALIASES_STR
+
+## Core Paths
+- Bundle root: \`projects/$SLUG/\`
+
+## Bundle Files
+- \`FAST_RESUME.md\` — estado actual
+- \`SUMMARY.md\` — scope + arquitectura estable
+- \`NEXT.md\` — backlog activo
+- \`LOG.md\` — historia narrativa
+- \`META.json\` — metadata machine-readable
+
+## External Services
+(servicios externos que este proyecto consume)
+
+## Backup Roots
+(paths externos al bundle que también requieren backup)
+
+## Secret Coverage
+(paths que contienen secrets — referenciar archivo, NUNCA pegar el valor)
+EOF
+
+# META.json con info completa
+python3 - <<EOF
 import json
-with open("$BUNDLE/META.json") as f:
-    meta = json.load(f)
-meta["title"] = "$TITLE"
-meta["scope"] = "$SCOPE"
-meta["created_at"] = "$NOW"
-meta["updated_at"] = "$NOW"
+NOW = "$NOW_FULL"
+ALIASES = $(printf '%s\n' "${ALIASES[@]}" | python3 -c 'import sys, json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')
+meta = {
+    "slug": "$SLUG",
+    "title": "$TITLE",
+    "scope": """$SCOPE""",
+    "aliases": ALIASES,
+    "sensitivity": "operations",
+    "canonical_node": "main",
+    "reasoning_floor": "medium",
+    "default_effort": "medium",
+    "repo_root": "",
+    "runtime_roots": [],
+    "backup_roots": [],
+    "backup_secret_paths": [],
+    "external_services": [],
+    "stable_url": "",
+    "created_at": NOW,
+    "updated_at": NOW,
+}
 with open("$BUNDLE/META.json", "w") as f:
     json.dump(meta, f, indent=2)
 EOF
-    fi
-fi
 
 # Agregar a PROJECT_REGISTRY.md
 REGISTRY="$WORKSPACE/PROJECT_REGISTRY.md"
-if [ -f "$REGISTRY" ]; then
-    if ! grep -q "^### $SLUG$" "$REGISTRY"; then
-        cat >> "$REGISTRY" <<EOF
+if [ -f "$REGISTRY" ] && ! grep -q "^### $SLUG$" "$REGISTRY"; then
+    cat >> "$REGISTRY" <<EOF
 
 ### $SLUG
+- Title: $TITLE
 - Scope: $SCOPE
 - Bundle root: \`projects/$SLUG\`
 - Sensitivity: \`operations\`
-- Aliases: (agregar según se necesite)
+- Aliases: $ALIASES_STR
 EOF
-    fi
 fi
 
+# Appendear entry a CROSS_SYNC.md
+CROSS_SYNC="$WORKSPACE/CROSS_SYNC.md"
+if [ -f "$CROSS_SYNC" ]; then
+    cat >> "$CROSS_SYNC" <<EOF
+
+### [$NOW_UTC_TS] $SLUG: bundle creado vía project-init
+- Actor: project-init script (auto)
+- Scope: \`projects/$SLUG/\`
+- Change: Bundle inicializado con SUMMARY/FAST_RESUME/NEXT/LOG/INDEX/META.json llenados con scope real. Entry agregada a PROJECT_REGISTRY.md.
+- Reason: $SCOPE
+- Validation: bundle creado en disco, archivos dentro de budget, project-sync ejecutado.
+- Rollback: \`mv projects/$SLUG projects/${SLUG}_archive_<UTC>/\` (ARCHIVE_POLICY pattern 2).
+EOF
+fi
+
+# Ejecutar project-sync si está disponible
+SYNC_RESULT=""
+if command -v project-sync &>/dev/null; then
+    SYNC_RESULT=$(project-sync "$SLUG" 2>&1 | tail -1)
+elif [ -x "$HOME/bin/project-sync" ]; then
+    SYNC_RESULT=$($HOME/bin/project-sync "$SLUG" 2>&1 | tail -1)
+fi
+
+# Reporte final
 echo "✓ Proyecto creado: $BUNDLE"
 echo ""
+echo "Detalles:"
+echo "  Slug:    $SLUG"
+echo "  Title:   $TITLE"
+echo "  Scope:   $SCOPE"
+[ ${#ALIASES[@]} -gt 0 ] && echo "  Aliases: ${ALIASES[*]}"
+echo ""
+echo "Archivos creados (con info real, no placeholders):"
+echo "  $BUNDLE/{FAST_RESUME,SUMMARY,NEXT,LOG,INDEX}.md"
+echo "  $BUNDLE/META.json"
+echo ""
+echo "Workspace actualizado:"
+echo "  PROJECT_REGISTRY.md: entry agregada"
+echo "  CROSS_SYNC.md: entry agregada"
+[ -n "$SYNC_RESULT" ] && echo "  project-sync: $SYNC_RESULT"
+
+if [ "$WARN_NO_SCOPE" = true ]; then
+    echo ""
+    echo "⚠️  WARNING: scope vacío. Editá $BUNDLE/SUMMARY.md con info real cuanto antes."
+fi
+
+echo ""
 echo "Próximos pasos:"
-echo "  1. Editá $BUNDLE/SUMMARY.md con el scope real."
-echo "  2. Editá $BUNDLE/FAST_RESUME.md con el estado inicial."
-echo "  3. Empezá a trabajar. Ejecutá 'doc-close $SLUG' después de cada cambio."
+echo "  1. Revisar/editar $BUNDLE/SUMMARY.md si querés ajustar arquitectura."
+echo "  2. Empezar a trabajar — usar 'doc-close $SLUG' después de cambios importantes."

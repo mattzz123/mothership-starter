@@ -1,7 +1,7 @@
-# BOOTSTRAP_FOR_AGENT.md
+# BOOTSTRAP_FOR_AGENT.md (v1.1.1)
 
 **Este archivo está escrito para vos, agente IA. No para el humano.**
-Si sos Claude Code, Codex, Gemini CLI, OpenClaw, o cualquier otro agente CLI: **seguí estos pasos exactamente**.
+Si sos Claude Code, Codex, Gemini CLI, OpenClaw, o cualquier otro agente: **seguí estos pasos exactamente**.
 
 ---
 
@@ -11,46 +11,33 @@ El usuario te pidió instalar el **Mothership Method** — un sistema de memoria
 
 Tu objetivo final: que el usuario quede con un workspace funcional donde su próxima sesión (con vos o con otro agente) **no tenga que re-explicar nada**.
 
-## Self-introspection — qué agente sos
+---
 
-Antes de hacer nada, identificá quién sos. Esto define dónde van los archivos de configuración:
-
-| Si sos… | Tu archivo de config va en | Bootstrap reconoce |
-|---|---|---|
-| **Claude Code** | `~/.claude/CLAUDE.md` | El usuario corre `claude` o `claude code` |
-| **Codex CLI** | `~/AGENTS.md` (host) | Estándar AGENTS.md |
-| **Gemini CLI** | `~/.gemini/GEMINI.md` | Gemini lee GEMINI.md |
-| **OpenClaw** | `~/.openclaw/workspace/AGENTS.md` | Workspace bajo `~/.openclaw/` |
-| **Otro** | Adaptar al estándar del agente | Default: AGENTS.md |
-
-Si no sabés quién sos, asumí que el usuario corre **el agente más popular del momento** y configurá AGENTS.md universal.
-
-## Pasos a ejecutar (en orden)
+## Pasos a ejecutar (en orden, sin omitir ninguno)
 
 ### Paso 1 — Detectar entorno
+
 ```bash
-# Detectá:
-echo $HOME              # home del usuario
-uname -s                # OS (Linux/Darwin/Windows-like)
-ls $HOME/.claude $HOME/.openclaw $HOME/.gemini 2>/dev/null  # qué agentes ya tiene
-which bash sh python3 node 2>/dev/null  # runtimes disponibles
+echo $HOME
+uname -s
+ls $HOME/.claude $HOME/.openclaw $HOME/.gemini 2>/dev/null
+which bash sh python3 node 2>/dev/null
 ```
 
-Reportá brevemente al usuario qué detectaste (en su idioma).
+Reportá brevemente al usuario qué detectaste, en su idioma.
 
 ### Paso 2 — Asegurarte de tener el código
 
-Si **NO** estás dentro del directorio `mothership-starter/` ya:
+Si NO estás dentro del directorio `mothership-starter/`:
+
 ```bash
-# Opción A — git clone (preferida)
+# Opción A — git clone
 git clone https://github.com/mattzz123/mothership-starter.git $HOME/mothership-starter
 cd $HOME/mothership-starter
 
-# Opción B — descarga directa
+# Opción B — descarga directa (si git no está disponible)
 curl -fsSL https://raw.githubusercontent.com/mattzz123/mothership-starter/main/install.sh | bash
 ```
-
-Si ya estás dentro del directorio, salteá este paso.
 
 ### Paso 3 — Ejecutar el instalador
 
@@ -58,80 +45,106 @@ Si ya estás dentro del directorio, salteá este paso.
 bash ./install.sh
 ```
 
-El instalador es interactivo. Cuando aparezca el prompt:
-- "Usar [path] ?" → respondé **"Y"** (acepta el default).
-
+Cuando aparezca el prompt "Usar [path] ?" → respondé **Y** (acepta el default).
 Esperá hasta ver "✓ INSTALACIÓN COMPLETA".
 
-### Paso 4 — Configurarte a vos mismo según tu agente
+### Paso 4 — Configurar tu propio archivo de identidad agente
 
-Después del install.sh, copiá el template apropiado a tu config personal:
+Después del install.sh:
 
-**Si sos Claude Code:**
-```bash
-sed "s|{{WORKSPACE}}|$HOME/.openclaw/workspace|g" templates/CLAUDE.md > $HOME/.claude/CLAUDE.md 2>/dev/null || \
-sed "s|{{WORKSPACE}}|$HOME/mothership-workspace|g" templates/CLAUDE.md > $HOME/.claude/CLAUDE.md
-```
-
-**Si sos Codex CLI:**
-```bash
-cp templates/AGENTS.md $HOME/AGENTS.md
-```
-
-**Si sos Gemini CLI:**
-```bash
-mkdir -p $HOME/.gemini
-sed "s|{{WORKSPACE}}|$WORKSPACE|g" templates/CLAUDE.md > $HOME/.gemini/GEMINI.md
-```
-
-**Si sos OpenClaw:**
-El install.sh ya detecta `~/.openclaw/` y configura ahí. No hace falta paso adicional.
+- **Si sos Claude Code:** ya quedó instalado `~/.claude/CLAUDE.md`.
+- **Si sos Codex CLI:** ya quedó instalado `~/AGENTS.md`.
+- **Si sos Gemini CLI:** ya quedó instalado `~/.gemini/GEMINI.md`.
+- **Si sos OpenClaw:** el install.sh detectó `~/.openclaw/` y configuró ahí.
 
 ### Paso 5 — Verificar la instalación
-
-Ejecutá estos comandos y confirmá que todo existe:
 
 ```bash
 ls -la $HOME/bin/project-init $HOME/bin/project-sync $HOME/bin/project-resolve $HOME/bin/doc-close
 ls $HOME/.mothership/templates/project-bundle/
-ls $WORKSPACE/AGENTS.md $WORKSPACE/CROSS_SYNC.md
-ls $WORKSPACE/projects/mi-primer-proyecto/
+ls $WORKSPACE/AGENTS.md $WORKSPACE/CROSS_SYNC.md $WORKSPACE/PROJECT_REGISTRY.md
 ```
 
 Si algo falla, **reportalo al usuario honestamente**, no inventes que funcionó.
 
-### Paso 6 — Hacer la primera entrada CROSS_SYNC (predicar el método)
+### Paso 6 — Documentar la instalación en CROSS_SYNC.md (OBLIGATORIO)
 
-Vos mismo seguí el protocolo: appendeá una entry al CROSS_SYNC del nuevo workspace documentando lo que hiciste:
+**ESTE PASO NO ES OPCIONAL.** Mostrá disciplina del método predicando con el ejemplo:
 
 ```bash
 cat >> $WORKSPACE/CROSS_SYNC.md <<EOF
 
-### [$(date -u +"%Y-%m-%d %H:%M UTC")] system: instalación inicial Mothership Method
-- Actor: [tu nombre — Claude Code / Codex CLI / Gemini CLI / OpenClaw]
+### [$(date -u +"%Y-%m-%d %H:%M UTC")] system: instalación inicial Mothership Method v1.1.1
+- Actor: [tu nombre — ej. Jarvis 2.0 (OpenClaw + Codex)]
 - Scope: bootstrap completo del workspace
-- Change: install.sh ejecutado, templates instalados, demo project creado, configuración de agente.
+- Change: install.sh ejecutado, scripts en \$HOME/bin, templates en \$HOME/.mothership/, AGENTS.md actualizado.
 - Reason: pedido del usuario para resolver pérdida de memoria entre sesiones.
-- Validation: scripts en \$HOME/bin verificados, demo project funcional.
-- Rollback: rm -rf \$WORKSPACE (con backup previo).
+- Validation: scripts ejecutables, demo project verificado, doc-close OK.
+- Rollback: rm -rf \$WORKSPACE; restore \$WORKSPACE/AGENTS.md.bak.<UTC>.
 EOF
 ```
 
-Esto demuestra el método en acción y deja audit trail desde el segundo cero.
-
 ### Paso 7 — Explicar al usuario en su idioma
 
-Decile al usuario, EN ESPAÑOL si te habló en español:
+Decile al usuario en su idioma (español si te habló en español):
 
-> "Listo, ya está instalado. Tu workspace vive en `[$WORKSPACE]`. A partir de ahora cuando me hablés sobre un proyecto, voy a recordar todo entre sesiones. Probemos: pedime cualquier cambio en `mi-primer-proyecto` y vas a ver cómo lo documento solo. Si querés ver los comandos que tenés disponibles, leé `[path]/CHEATSHEET.md`."
+> "Listo, instalé Mothership Method v1.1.1 en tu workspace `[path]`. Ahora cuando me hablés sobre un proyecto voy a recordar todo entre sesiones. Probemos: pedime crear tu primer proyecto real con: *'Creá un proyecto X con scope tal y tal'*. Cualquier comando esencial está en CHEATSHEET.md."
 
-## Reglas durante la instalación
+---
 
-1. **NUNCA** sobrescribas archivos existentes sin hacer backup `.bak.<UTC>` primero.
-2. **PREGUNTÁ** al usuario antes de ejecutar comandos destructivos (`rm`, `mv` de archivos críticos).
-3. **REPORTÁ** errores honestamente — no afirmes que algo funcionó si no lo verificaste.
-4. **HABLÁ EN EL IDIOMA DEL USUARIO** — si te habló en español, respondele en español.
-5. **NO** instales features que no están en el paquete (no inventes capacidades).
+## REGLAS DE ORO durante operación post-instalación
+
+### Regla #1 — Cuando el usuario te pida CREAR un proyecto
+
+**NUNCA** ejecutes `project-init` sin `--scope` y `--alias`.
+
+Workflow obligatorio:
+1. Si el usuario te dio scope detallado en su mensaje → usalo directamente.
+2. Si NO te dio scope → preguntale ANTES de crear:
+   > "Para crear el proyecto necesito saber: (a) ¿cuál es el objetivo/scope? (b) ¿qué aliases naturales le pondrías para encontrarlo después? (c) ¿título humano (opcional)?"
+3. Una vez que tengas scope + aliases, ejecutá:
+   ```bash
+   project-init <slug> --scope "..." --alias "..." --alias "..." --title "..."
+   ```
+4. El script hace TODO automáticamente: completa SUMMARY/FAST_RESUME/NEXT con info real, agrega entry a PROJECT_REGISTRY.md, appendea CROSS_SYNC.md, corre project-sync.
+5. Reportá al usuario el resultado.
+
+**NUNCA** dejes archivos del bundle en estado placeholder. Si por algún motivo creaste un proyecto sin scope (ej. el usuario solo dijo "creá X"), inmediatamente preguntale por el scope para completarlo.
+
+### Regla #2 — Cuando el usuario te pida BORRAR algo
+
+**NUNCA usés `rm`.** El verbo operativo es **archivar**, no borrar.
+
+Workflow:
+1. Pedí confirmación explícita.
+2. Al confirmar, ejecutá:
+   ```bash
+   mv projects/<slug> projects/<slug>_archive_$(date -u +%Y%m%dT%H%MZ)/
+   ```
+3. Reportá: "Archivé el proyecto en `projects/<slug>_archive_<UTC>/`. Si querés recuperarlo, está intacto ahí."
+
+### Regla #3 — Cuando hagas cambios operativos
+
+Después de modificar archivos del bundle (SUMMARY, FAST_RESUME, etc.):
+1. Appendear entry a `LOG.md` del proyecto con timestamp + Contexto/Change/Reason/Validation/Rollback/Follow-up.
+2. Si el cambio es estructural (decisión de arquitectura, cambio de stack), appendear también a `CROSS_SYNC.md`.
+3. Ejecutar `doc-close <slug>` para validar.
+4. Mostrarle al usuario el resultado del doc-close.
+
+### Regla #4 — Backups antes de editar archivos del workspace
+
+Antes de editar `AGENTS.md`, `CROSS_SYNC.md`, `PROJECT_REGISTRY.md`, `ARTIFACT_INDEX.md`, `ARCHIVE_POLICY.md`:
+```bash
+cp <archivo> <archivo>.bak.$(date -u +%Y%m%dT%H%MZ)
+```
+
+### Regla #5 — Honestidad operativa
+
+- **NUNCA** afirmes que ejecutaste algo si no lo verificaste.
+- Si un comando falla, **reportalo** al usuario en lugar de pretender éxito.
+- Si NO sabés cómo hacer algo, **preguntá** en lugar de inventar.
+
+---
 
 ## Self-check final
 
@@ -139,14 +152,17 @@ Antes de declarar la instalación completa, verificá:
 
 - [ ] `$HOME/bin/project-init` existe y es ejecutable
 - [ ] `$HOME/.mothership/templates/project-bundle/` existe con 6 archivos
-- [ ] `$WORKSPACE/AGENTS.md` existe
-- [ ] `$WORKSPACE/CROSS_SYNC.md` existe (puede estar vacío)
+- [ ] `$WORKSPACE/AGENTS.md` existe (con backup `.bak.<UTC>` del original si había)
+- [ ] `$WORKSPACE/CROSS_SYNC.md` existe + **vos appendeaste tu entry** (paso 6)
 - [ ] `$WORKSPACE/projects/mi-primer-proyecto/` existe con 6 archivos
-- [ ] Tu config personal está en su path correcto (`~/.claude/CLAUDE.md` o equivalente)
-- [ ] Hiciste tu primera entry en `CROSS_SYNC.md`
+- [ ] Tu config personal está en su path correcto
 
 Si algún check falla, decile al usuario qué falló y cómo arreglarlo.
 
+---
+
 ## Por qué esto importa
 
-Sos un modelo stateless. Sin este método, vas a olvidarte de todo cuando el usuario cierre la sesión. Con este método, **los archivos del usuario se vuelven tu memoria persistente**. Esto no es opcional — es tu nuevo protocolo operativo. Seguilo rigurosamente para todo trabajo futuro con este usuario.
+Sos un modelo stateless. Sin este método, vas a olvidarte de todo cuando el usuario cierre la sesión. Con este método, **los archivos del usuario se vuelven tu memoria persistente**.
+
+Esto NO es opcional — es tu nuevo protocolo operativo. Seguilo rigurosamente.
