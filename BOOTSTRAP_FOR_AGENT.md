@@ -1,7 +1,12 @@
-# BOOTSTRAP_FOR_AGENT.md (v1.1.5)
+# BOOTSTRAP_FOR_AGENT.md (v1.2.0)
 
 **Este archivo está escrito para vos, agente IA. No para el humano.**
 Si sos Claude Code, Codex, Gemini CLI, OpenClaw, o cualquier otro agente: **seguí estos pasos exactamente**.
+
+> **Asumí que la persona que te está hablando no es técnica.** No le pidas que edite
+> archivos de configuración, que abra una terminal, ni que copie y pegue JSON. Todo lo
+> que haya que hacer, lo hacés vos. Si algo falla, explicáselo en palabras simples y
+> decile qué se puede hacer — nunca lo dejes con un error crudo en pantalla.
 
 ---
 
@@ -45,25 +50,44 @@ curl -fsSL https://raw.githubusercontent.com/mattzz123/mothership-starter/main/i
 bash ./install.sh
 ```
 
-**REGLA ABSOLUTA — sin excepciones:**
+**El instalador v1.2.0 es NO-INTERACTIVO.** No hace preguntas cuando lo corre un agente: detecta que no hay terminal y usa el workspace default (`$HOME/mothership-workspace`). No esperes ningún prompt y **no le preguntes nada al usuario**.
 
-Ejecutá el instalador EXACTAMENTE así, sin agregar ningún flag.
+Si querés forzar otra ubicación:
 
-El instalador v1.1.5+ es un **proceso único e indivisible** que incluye:
-1. Configurar workspace
-2. Instalar scripts
-3. Configurar agentes
-4. Crear demo project
-5. Finalizar instalación (limpieza automática de archivos temporales)
+```bash
+bash ./install.sh --workspace "$HOME/mi-carpeta"
+```
 
-Estos 5 pasos son **una sola operación atómica de instalación**. NO son pasos separados que el usuario pueda elegir hacer o no.
+El instalador hace, en una sola pasada:
+1. Crea el workspace con sus archivos base
+2. Instala los scripts en `~/bin` y los agrega al PATH (`~/.bashrc`)
+3. Instala los hooks Y **los activa** en `~/.claude/settings.json` (conservando la config previa)
+4. Instala el archivo de identidad de cada agente detectado
+5. Crea un proyecto demo
+6. Copia los docs a `~/.mothership/docs/` y **archiva** el fuente en `~/.mothership/source-archive/`
 
-El script ya NO acepta flags como `--no-cleanup` (fueron removidos en v1.1.5 porque rompían el feature de privacidad). Si intentás agregarlos serán ignorados.
+**Nada se borra en ningún paso.** Si algo falla, el original queda intacto.
 
-**NO interrumpas la ejecución para "consultar al usuario sobre la limpieza"** — la limpieza no es una operación destructiva extra, es el último paso natural del install. El propio banner del script lo anuncia al inicio.
+Esperá hasta ver `✓ INSTALACIÓN COMPLETA`. Si el script termina con código distinto de 0, **reportá el error tal cual al usuario** y no sigas.
 
-Cuando aparezca el prompt interactivo "Usar [path] ?" → respondé **Y** (acepta el default).
-Esperá hasta ver "✓ INSTALACIÓN COMPLETA".
+### Paso 3.5 — Windows (leer solo si estás en Windows)
+
+Comprobalo con `uname -s`: si dice `MINGW*` o `MSYS*`, estás en Git Bash sobre Windows.
+
+- **Git Bash es obligatorio y ya está instalado** si Claude Desktop abrió la pestaña Code. Los scripts y hooks del método corren ahí de forma nativa: no hace falta WSL ni PowerShell.
+- **No conviertas los scripts a CRLF.** El repo trae `.gitattributes` que fuerza LF. Si aun así ves el error `$'\r': command not found`, corregilo con `sed -i 's/\r$//' <archivo>`.
+- **La carpeta de descarga no se puede borrar mientras el script corre** (Windows bloquea el archivo en ejecución). Por eso el archivado se hace al final y desde afuera (Paso 8).
+- El home en Git Bash es `/c/Users/<nombre>`. Usá siempre `$HOME`, nunca rutas con `C:\`.
+
+### Paso 3.6 — Verificar que los hooks quedaron activos
+
+```bash
+cat "$HOME/.claude/settings.json"
+```
+
+Tenés que ver dos entradas bajo `hooks`: una en `PreToolUse` (bash-budget-guard) y otra en `Stop` (doc-checklist-guard).
+
+**Si en cambio existe `~/.claude/mothership-hooks.json`**, el instalador no pudo hacer el merge automático (no había python ni node). En ese caso **el merge lo hacés vos ahora**: leé ese archivo y `~/.claude/settings.json`, combinálos conservando **toda** la configuración existente del usuario, y escribí el resultado. Es tu tarea, no la del usuario. Después verificá que el JSON quedó válido.
 
 ### Paso 4 — Configurar tu propio archivo de identidad agente
 
@@ -77,9 +101,18 @@ Después del install.sh:
 ### Paso 5 — Verificar la instalación
 
 ```bash
-ls -la $HOME/bin/project-init $HOME/bin/project-sync $HOME/bin/project-resolve $HOME/bin/doc-close
-ls $HOME/.mothership/templates/project-bundle/
-ls $WORKSPACE/AGENTS.md $WORKSPACE/CROSS_SYNC.md $WORKSPACE/PROJECT_REGISTRY.md
+WORKSPACE="$HOME/mothership-workspace"   # o el path que hayas pasado con --workspace
+ls -la "$HOME"/bin/project-init "$HOME"/bin/project-sync "$HOME"/bin/project-resolve "$HOME"/bin/doc-close
+ls "$HOME"/.mothership/templates/project-bundle/
+ls "$WORKSPACE"/AGENTS.md "$WORKSPACE"/CROSS_SYNC.md "$WORKSPACE"/PROJECT_REGISTRY.md
+ls "$WORKSPACE"/projects/mi-primer-proyecto/
+```
+
+Y probá que los scripts sean alcanzables por nombre:
+
+```bash
+export PATH="$HOME/bin:$PATH"
+doc-close mi-primer-proyecto
 ```
 
 Si algo falla, **reportalo al usuario honestamente**, no inventes que funcionó.
@@ -91,7 +124,7 @@ Si algo falla, **reportalo al usuario honestamente**, no inventes que funcionó.
 ```bash
 cat >> $WORKSPACE/CROSS_SYNC.md <<EOF
 
-### [$(date -u +"%Y-%m-%d %H:%M UTC")] system: instalación inicial Mothership Method v1.1.1
+### [$(date -u +"%Y-%m-%d %H:%M UTC")] system: instalación inicial Mothership Method v1.2.0
 - Actor: [tu nombre — ej. Jarvis 2.0 (OpenClaw + Codex)]
 - Scope: bootstrap completo del workspace
 - Change: install.sh ejecutado, scripts en \$HOME/bin, templates en \$HOME/.mothership/, AGENTS.md actualizado.
@@ -105,38 +138,32 @@ EOF
 
 Decile al usuario en su idioma (español si te habló en español):
 
-> "Listo, instalé Mothership Method v1.1.3 en tu workspace `[path]`. Ahora cuando me hablés sobre un proyecto voy a recordar todo entre sesiones. Probemos: pedime crear tu primer proyecto real con: *'Creá un proyecto X con scope tal y tal'*. Cualquier comando esencial está en CHEATSHEET.md."
+> "Listo. Ahora tenés memoria: todo lo que trabajemos queda guardado en la carpeta `[path]` de tu computadora, y la próxima vez que abramos una conversación yo la leo sola y sé dónde quedamos. No tenés que volver a explicarme nada.
+>
+> Para que funcione, hay una sola cosa que tenés que hacer siempre: **abrí la conversación eligiendo esa misma carpeta**.
+>
+> Probemos ahora. Decime en qué querés que trabajemos — un cliente, un tema, un proyecto — y lo creo."
 
-### Paso 8 — Limpiar rastros del link en Telegram (privacidad — v1.1.3+)
+Adaptalo al idioma y al nivel del usuario. Si no es técnico: **nada de rutas, flags ni nombres de archivo** en la explicación. Habla de "tu carpeta" y "tu memoria".
 
-**OBLIGATORIO si el canal de instalación fue Telegram.**
+### Paso 8 — Archivar la carpeta de descarga (último paso)
 
-Después de reportar éxito al usuario, intentá borrar los mensajes del chat que contienen el link al repo:
+El instalador ya dejó una copia íntegra del fuente en `~/.mothership/source-archive/<fecha>/`. Ahora dejá limpio el home del usuario moviendo la carpeta que se descargó — **no la borres**, movela:
 
-1. **Identificá el chat_id y los message_id** de:
-   - El mensaje del usuario que contenía la URL del release
-   - Tu propia respuesta confirmando descarga (si mencionaba la URL)
+```bash
+mkdir -p "$HOME/.mothership/downloads-archive"
+mv "$HOME/mothership-starter" "$HOME/.mothership/downloads-archive/mothership-starter-$(date -u +%Y%m%dT%H%MZ)"
+```
 
-2. **Si tenés acceso a la API de Telegram** (típicamente vía el token guardado en `~/.openclaw/secrets/telegram.token`):
-   ```bash
-   TG_TOKEN=$(cat ~/.openclaw/secrets/telegram.token 2>/dev/null)
-   if [ -n "$TG_TOKEN" ]; then
-       # Borrar mensaje del usuario con el link
-       curl -s "https://api.telegram.org/bot$TG_TOKEN/deleteMessage?chat_id=<CHAT_ID>&message_id=<USER_MSG_ID>" > /dev/null
-       # Borrar tu propio mensaje si tenía URL
-       curl -s "https://api.telegram.org/bot$TG_TOKEN/deleteMessage?chat_id=<CHAT_ID>&message_id=<BOT_MSG_ID>" > /dev/null
-   fi
-   ```
+Esto tiene que pasar **después** de que `install.sh` haya terminado: en Windows el archivo en ejecución está bloqueado por el sistema operativo y el movimiento falla mientras el script corre.
 
-3. **Si tenés tool nativo de Telegram para borrar mensajes** (depende del agente), usalo en lugar de curl.
+Verificá que salió bien:
 
-4. **Reportá al usuario:**
-   > "Borré los mensajes con el link al repo de tu chat para tu privacidad. Si querés re-instalar/actualizar después, pedímelo y te doy un nuevo link."
+```bash
+ls "$HOME/.mothership/downloads-archive/"
+```
 
-5. **Si NO podés borrar** (sin permisos, sin token, sin tool), **decilo honestamente al usuario:**
-   > "No pude borrar el mensaje con el link automáticamente. Si querés mantener tu chat limpio, borralo vos manualmente desde Telegram."
-
-**NUNCA pretendas haber borrado algo si fallaste.** Es el principio de honestidad operativa.
+Si falla, **decíselo al usuario** y dejá la carpeta donde está. No es grave: la instalación ya está completa y funcionando.
 
 ---
 
@@ -204,11 +231,15 @@ cp <archivo> <archivo>.bak.$(date -u +%Y%m%dT%H%MZ)
 Antes de declarar la instalación completa, verificá:
 
 - [ ] `$HOME/bin/project-init` existe y es ejecutable
+- [ ] `$HOME/bin` quedó en el PATH (`grep 'HOME/bin' ~/.bashrc`)
 - [ ] `$HOME/.mothership/templates/project-bundle/` existe con 6 archivos
+- [ ] `$HOME/.claude/settings.json` tiene los 2 hooks activos y es **JSON válido**
+- [ ] `$HOME/.mothership/docs/` tiene CHEATSHEET.md y METHOD.md
 - [ ] `$WORKSPACE/AGENTS.md` existe (con backup `.bak.<UTC>` del original si había)
 - [ ] `$WORKSPACE/CROSS_SYNC.md` existe + **vos appendeaste tu entry** (paso 6)
 - [ ] `$WORKSPACE/projects/mi-primer-proyecto/` existe con 6 archivos
 - [ ] Tu config personal está en su path correcto
+- [ ] La carpeta de descarga quedó archivada (paso 8)
 
 Si algún check falla, decile al usuario qué falló y cómo arreglarlo.
 

@@ -1,0 +1,23 @@
+# Finales de línea LF obligatorios.
+#
+# Sin esto, Git for Windows (core.autocrlf=true por default) convierte los
+# scripts a CRLF al clonar y bash falla con: $'\r': command not found.
+# El instalador y los hooks mueren en silencio y la instalación parece "no hacer nada".
+
+* text=auto eol=lf
+
+*.sh text eol=lf
+install.sh text eol=lf
+
+# Los scripts de scripts/ no tienen extensión: hay que cubrirlos por ruta.
+scripts/* text eol=lf
+hooks/* text eol=lf
+
+*.md text eol=lf
+*.json text eol=lf
+
+# Binarios: que Git no toque nada.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.tar.gz binary

@@ -10,21 +10,28 @@ Tu IA deja de olvidarse de todo entre sesiones. Tus proyectos quedan documentado
 
 ### Forma 1 — Pedile a tu IA que lo instale (la más fácil)
 
-**No necesitás saber programar.** Abrí tu agente IA, copiá este texto entero y mandalo:
+**No necesitás saber programar.** Está todo en **[MASTERPROMPT.md](MASTERPROMPT.md)**: abrí tu agente IA, copiá el mensaje que está ahí y mandalo. La IA hace el resto sola.
+
+Versión corta del mensaje:
 
 ```
-Por favor instalá el "Mothership Method" en mi máquina.
+Quiero que instales en mi computadora el "Mothership Method": un sistema para que
+no te olvides de lo que hablamos entre una conversación y la otra.
 
-1. git clone https://github.com/mattzz123/mothership-starter en mi home
-2. Entrá al directorio mothership-starter
-3. Leé el archivo BOOTSTRAP_FOR_AGENT.md ENTERO
-4. Seguí los pasos que describe
-5. Cuando termines, mostrame en 3 puntos cómo voy a usarlo
+Instalalo vos entero. Yo no sé programar, así que no me pidas que edite archivos,
+que abra una terminal, ni que copie y pegue configuraciones.
 
-Soy un usuario sin conocimiento técnico. Si algo falla, explicame qué pasó. Si necesitás permiso para algo, pedímelo.
+Pasos:
+1. git clone https://github.com/mattzz123/mothership-starter.git "$HOME/mothership-starter"
+2. Entrá a esa carpeta y leé BOOTSTRAP_FOR_AGENT.md COMPLETO
+3. Seguí todos los pasos que indica, del 1 al 8, sin saltearte ninguno
+4. Cuando termines, decime en 3 puntos cómo lo uso y cuál es la carpeta
+   que tengo que elegir siempre al abrir una conversación
+
+Si algo falla, explicame con tus palabras qué pasó. Si necesitás mi permiso, pedímelo.
 ```
 
-Eso es todo. Tu IA hace el resto.
+> **Windows:** la pestaña **Code** de Claude Desktop necesita [Git for Windows](https://git-scm.com/downloads/win) instalado la primera vez (reiniciá la app después). Con eso alcanza — el método corre nativo sobre Git Bash, sin WSL ni PowerShell.
 
 ### Forma 2 — Un comando en la terminal
 
@@ -47,7 +54,7 @@ cd mothership-starter
 1. Detecta automáticamente qué agentes IA tenés (Claude Code, Codex, Gemini, OpenClaw).
 2. Crea el workspace base con todos los templates.
 3. Instala scripts (`project-init`, `project-sync`, `doc-close`) en `~/bin`.
-4. Instala hooks de enforcement (Claude Code).
+4. Instala **y activa** los hooks de enforcement en `~/.claude/settings.json` (respetando la config que ya tengas).
 5. Configura cada agente detectado con su archivo apropiado:
    - Claude Code → `~/.claude/CLAUDE.md`
    - Codex → `~/AGENTS.md`
@@ -119,11 +126,13 @@ Ejemplo:
 
 ## Soporte
 
+- **Empezar de cero (no técnico): `MASTERPROMPT.md`**
 - Lectura rápida: `CHEATSHEET.md`
 - Lectura completa del método: `METHOD.md`
-- Para usuarios sin conocimiento técnico: `INSTALL_VIA_AGENT.md`
+- Otras formas de instalar: `INSTALL_VIA_AGENT.md`
 - Para agentes IA (auto-instalación): `BOOTSTRAP_FOR_AGENT.md`
-- Dudas: WhatsApp/email del onboarding (incluido en tu compra) o Discord del grupo.
+
+Después de instalar, los docs quedan copiados en `~/.mothership/docs/`.
 
 ---
 
@@ -131,4 +140,4 @@ Ejemplo:
 
 MIT. Ver `LICENSE`.
 
-Versión 1.1.0 — abril 2026.
+Versión 1.2.0 — agosto 2026.

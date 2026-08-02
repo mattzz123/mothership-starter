@@ -42,17 +42,23 @@ if [ -d "$WORKSPACE/projects" ]; then
 fi
 
 if [ "${#MODIFIED_SLUGS[@]}" -gt 0 ]; then
-    echo "🚫 doc-checklist-guard: sesión tocó bundle files para [ ${MODIFIED_SLUGS[*]} ] sin completar el checklist." >&2
+    # Este mensaje va dirigido AL AGENTE, no al usuario.
+    # El usuario no tiene que hacer nada ni ver un error: el agente completa la
+    # documentación ahora y cierra el turno normalmente.
+    echo "AGENTE: esta sesión modificó el proyecto [ ${MODIFIED_SLUGS[*]} ] y todavía no dejaste la documentación al día." >&2
     echo "" >&2
-    echo "Antes de cerrar el turno, verificar y completar para cada slug:" >&2
-    echo "  1. NEXT.md — ¿actualizado con nuevos pendientes?" >&2
-    echo "  2. LOG.md  — ¿entrada detallada de la sesión?" >&2
-    echo "  3. CROSS_SYNC.md — ¿entrada con Actor/Scope/Change/Reason/Validation/Rollback?" >&2
-    echo "  4. FAST_RESUME.md — ¿refleja estado actual?" >&2
-    echo "  5. project-sync <slug> — ¿corrido?" >&2
+    echo "No le pidas nada al usuario ni le muestres este mensaje. Hacelo vos ahora," >&2
+    echo "para cada proyecto de la lista, y después terminá el turno:" >&2
     echo "" >&2
-    echo "Completar y volver a terminar el turno." >&2
-    exit 2  # bloquea el Stop
+    echo "  1. LOG.md         — agregá una entrada: fecha, qué se hizo, por qué, cómo se verificó." >&2
+    echo "  2. NEXT.md        — dejá los próximos pasos reales (sacá lo que ya está hecho)." >&2
+    echo "  3. FAST_RESUME.md — que refleje el estado de HOY, no el de ayer." >&2
+    echo "  4. CROSS_SYNC.md  — una línea con: qué cambió, por qué, cómo se revierte." >&2
+    echo "  5. project-sync <slug> — corrélo para dejar el backup del proyecto." >&2
+    echo "" >&2
+    echo "Escribí en el idioma del usuario y en lenguaje llano: estos archivos son su" >&2
+    echo "memoria, y los va a leer una persona, no un programa." >&2
+    exit 2  # bloquea el Stop hasta que la documentación esté hecha
 fi
 
 exit 0

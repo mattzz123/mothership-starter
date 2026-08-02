@@ -2,6 +2,61 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.2.0] — 2026-08-01
+
+### Instalación manejada por agente + soporte Windows
+
+Esta versión sale de probar el instalador tal como lo ejecuta un agente IA (stdin no interactivo) y sobre Windows/Git Bash. Se encontraron cinco fallas, tres de ellas bloqueantes.
+
+#### Fix #1 (BLOQUEANTE) — el instalador moría sin instalar nada
+`choose_workspace()` usaba `read -p`. Ejecutado por un agente no hay terminal interactiva: `read` devolvía error, `set -e` abortaba el script y **la instalación terminaba con exit 1 en el paso 2, sin instalar absolutamente nada y sin mensaje de error**. La "Forma 1 — pedile a tu IA que lo instale", que es la vía principal del producto, no funcionaba.
+
+- Ahora el instalador detecta que no hay terminal (`[ ! -t 0 ]`) y usa el workspace default en silencio.
+- Nuevos flags: `--workspace <path>` y `-y|--yes`.
+- Los `read` restantes toleran EOF sin abortar.
+
+#### Fix #2 (BLOQUEANTE en Windows) — finales de línea CRLF
+El repo no tenía `.gitattributes`. Con `core.autocrlf=true` (default de Git for Windows), al clonar los scripts quedaban en CRLF y bash fallaba con `$'\r': command not found`. Hooks y scripts morían en silencio.
+
+- Agregado `.gitattributes` que fuerza `eol=lf`, cubriendo también `scripts/*` y `hooks/*` (no tienen extensión `.sh`).
+
+#### Fix #3 (BLOQUEANTE) — los hooks nunca se activaban
+`install_hooks()` copiaba los `.sh` y después **imprimía un bloque JSON para que el usuario lo pegara a mano** en `~/.claude/settings.json`. Un usuario no técnico no lo hace, así que la capa de enforcement —el diferenciador del método— quedaba instalada pero inerte.
+
+- Ahora los hooks se cablean solos: si no hay `settings.json` se crea; si ya existe se hace backup y **merge idempotente** (vía python o node) preservando toda la configuración previa.
+- Si no hay ni python ni node, se deja `~/.claude/mothership-hooks.json` y se instruye **al agente** a integrarlo. Nunca al usuario.
+
+#### Fix #4 — `~/bin` quedaba fuera del PATH
+El instalador solo *avisaba* que había que agregarlo. Sin eso, `project-sync` y `doc-close` no existen para el agente y el paso 5 del checklist falla siempre.
+
+- Ahora se agrega a `~/.bashrc` (y a `.zshrc` / `.bash_profile` si existen), con backup previo y sin duplicar si ya está.
+
+#### Fix #5 — el mensaje final apuntaba a archivos ya borrados
+`print_success()` mandaba a leer `$SCRIPT_DIR/CHEATSHEET.md` y `METHOD.md`, pero `finalize_installation()` acababa de borrar `$SCRIPT_DIR`.
+
+- Los docs se copian a `~/.mothership/docs/` **antes** del archivado, y el mensaje final apunta ahí.
+
+### Cambio de política — el fuente se archiva, no se borra
+
+`finalize_installation()` hacía `rm -rf` del código fuente. Dos problemas: contradice la regla del propio método ("archivar, nunca borrar") y **en Windows falla en silencio**, porque el sistema operativo bloquea el archivo que se está ejecutando.
+
+- El fuente ahora se copia íntegro a `~/.mothership/source-archive/<UTC>/`.
+- El directorio de descarga lo archiva **el agente**, como último paso, ya con el script terminado (Paso 8 del bootstrap).
+
+### Otros
+
+- `doc-checklist-guard.sh`: el mensaje de bloqueo ahora está dirigido **al agente**, no al usuario. El agente documenta y cierra; el usuario nunca ve un error. Pide además que escriba en el idioma del usuario y en lenguaje llano.
+- Detección de Claude Code: también por binario en PATH, no solo por `~/.claude` (Claude Desktop puede estar instalado sin haber creado el directorio).
+- Nuevo `MASTERPROMPT.md`: mensaje listo para copiar y pegar, pensado para alguien que nunca abrió una terminal.
+- `BOOTSTRAP_FOR_AGENT.md`: sección Windows/Git Bash, verificación de hooks, self-check ampliado. Se removió el paso de borrado de mensajes de Telegram (era específico de un canal de distribución que ya no se usa).
+- `README.md`: nota de Windows y enlace a `MASTERPROMPT.md`.
+
+### Validación
+
+Probado en sandbox con HOME aislado: instalación no-interactiva de punta a punta (exit 0), idempotencia en segunda corrida (sin hooks ni PATH duplicados), merge sobre un `settings.json` preexistente conservando `model` y un hook `Stop` previo, y disparo real del Stop hook devolviendo exit 2.
+
+**Pendiente: E2E real sobre Windows con Claude Desktop.** No se puede simular desde Linux.
+
 ## [1.1.5] — 2026-04-23
 
 ### Eliminación del flag --no-cleanup (cleanup ahora obligatorio e indivisible)
