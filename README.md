@@ -6,7 +6,17 @@ Tu IA deja de olvidarse de todo entre sesiones. Tus proyectos quedan documentado
 
 ---
 
-## 3 formas de instalar (elegí una)
+## Dos niveles — empezá por el primero
+
+**Nivel 1 — en una carpeta.** Nueve archivos de texto adentro de una carpeta tuya. No instala programas, no copia ejecutables, no toca la configuración de tu asistente, no se conecta a ningún lado. Para desinstalar, borrás la carpeta. **Es lo que necesita la mayoría, y funciona por sí solo.**
+
+👉 **[INSTALAR_CARPETA.md](INSTALAR_CARPETA.md)** — no hace falta saber programar.
+
+**Nivel 2 — con automatizaciones.** Comandos (`project-init`, `doc-close`) y verificaciones que corren solas al cerrar cada sesión. Instala archivos ejecutables y modifica la configuración de tu asistente de forma permanente, para todas tus conversaciones. Es una decisión aparte: tomala entendiendo qué hace cada pieza. Es lo que se describe abajo.
+
+---
+
+## Nivel 2 — 3 formas de instalar (elegí una)
 
 ### Forma 1 — Pedile a tu IA que lo instale (la más fácil)
 

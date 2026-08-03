@@ -2,6 +2,20 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.2.1] — 2026-08-02
+
+### Nivel 1: instalación en carpeta, sin descargar ni ejecutar nada
+
+En el primer E2E con un usuario real (Windows + Claude Desktop), **el asistente del usuario se negó a ejecutar `install.sh`** y advirtió que `BOOTSTRAP_FOR_AGENT.md` estaba escrito con el patrón que se usa para hacerle bypass a las protecciones de un asistente. Ocurrió incluso en modo *Bypass permissions*: es criterio del modelo, no un permiso salteable.
+
+La objeción era correcta. El paquete mezclaba en una sola instalación atómica dos cosas distintas: (a) un sistema de memoria que vive en una carpeta —el producto— y (b) una modificación global y permanente del asistente del usuario: hooks en cada sesión y reescritura de `~/.claude/CLAUDE.md`.
+
+- **Nuevo `INSTALAR_CARPETA.md`**: instalación completa del nivel 1 en un solo archivo autocontenido. Crea nueve archivos de texto dentro de una carpeta. Sin descarga, sin ejecutables, sin tocar configuración, sin red. Declara por adelantado qué hace y qué no hace, y le pide al asistente que muestre la lista y espere confirmación antes de crear nada.
+- **Las reglas del método van al `CLAUDE.md` de la raíz del workspace**, no a `~/.claude/CLAUDE.md`. Se cargan al abrir esa carpeta y dejan de aplicar fuera de ella: alcance acotado, visible y reversible borrando un archivo. Validado en vivo, sin objeciones del asistente.
+- **`README.md` reestructurado en dos niveles**, con el nivel 2 (scripts y hooks) declarado explícitamente como decisión aparte que modifica la configuración de forma permanente.
+
+Pendiente para v1.3.0: aplicar el mismo criterio de consentimiento granular al instalador del nivel 2 y quitar de las plantillas y del bootstrap todo el lenguaje que modela comportamiento (prohibiciones léxicas, "obligatorias no opcionales", "no le preguntes al usuario").
+
 ## [1.2.0] — 2026-08-01
 
 ### Instalación manejada por agente + soporte Windows
