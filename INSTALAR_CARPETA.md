@@ -2,9 +2,9 @@
 
 **Para qué sirve:** para que tu asistente de IA no se olvide de lo que hablaron entre una conversación y la otra. Todo queda anotado en archivos de texto en una carpeta tuya.
 
-**Para quién es este archivo:** para cualquiera que empiece de cero. No hace falta saber programar ni abrir una terminal.
+**Para quién es este archivo:** para cualquiera. No hace falta saber programar ni abrir una terminal.
 
-**Si ya venís trabajando con tu asistente y tenés notas de meses anteriores**, no uses este archivo: usá [ADOPTAR_LO_QUE_YA_TENGO.md](ADOPTAR_LO_QUE_YA_TENGO.md), que ordena lo que ya escribiste en lugar de empezar en blanco.
+**Si ya venís trabajando con tu asistente y tenés notas de meses anteriores, este archivo también es para vos.** No hace falta migrar nada: se crea la carpeta nueva, se deja anotado dónde está tu material viejo para que tu asistente lo consulte cuando haga falta, y los temas que vuelvan a aparecer se van incorporando de a uno, cuando los estés trabajando. **Tus archivos anteriores no se tocan en ningún momento.**
 
 ---
 
@@ -60,6 +60,14 @@ Por defecto, en la raíz del usuario:
 
 En macOS, evitá `Documentos`, `Escritorio` y `Descargas`: el sistema las protege aparte y genera diálogos de permiso innecesarios. Si la persona prefiere otra ubicación, usá esa.
 
+### Paso 1.5 — Preguntar por el material anterior
+
+Preguntale: **"¿tenés notas o archivos de trabajo de antes, en otra carpeta?"**
+
+Si dice que sí, pedile la ubicación y anotala — la vas a usar en el paso siguiente. **No la abras, no la leas y no copies nada de ahí.** Lo único que se hace con esa carpeta es dejar registrado dónde está.
+
+Si dice que no, salteá la sección correspondiente del paso 2.
+
 ### Paso 2 — `CLAUDE.md` en la raíz de la carpeta
 
 Este es el único archivo con contenido de comportamiento, y su alcance es esa carpeta: se carga cuando la persona la abre, y deja de aplicar cuando trabaja en otro lado.
@@ -99,6 +107,16 @@ nunca el valor.
 - Antes de reemplazar o mover un archivo de notas, avisame.
 ```
 
+**Solo si en el paso 1.5 dijo que tiene material anterior**, agregá esta sección más, con la ruta que te dio:
+
+```
+## Material anterior
+Mis notas de antes están en <ruta que dio la persona>. Si hablamos de algo que
+puede estar ahí, buscá primero en esa carpeta antes de decirme que no sabés.
+No la reorganices ni la modifiques: es solo para consultar. Si un tema de ahí
+se vuelve recurrente, decímelo y armamos un proyecto con él.
+```
+
 ### Paso 3 — `PROJECT_REGISTRY.md` en la raíz
 
 ```
@@ -122,15 +140,22 @@ Sirve para ver de un vistazo qué pasó últimamente, sin importar el proyecto.
 Formato: fecha — proyecto — qué cambió — por qué.
 ```
 
-### Paso 5 — El primer proyecto
+### Paso 5 — El primer proyecto, con contenido real
 
-Preguntale a la persona sobre qué quiere trabajar primero: un cliente, un tema,
-un asunto pendiente. Usá eso como nombre de carpeta, en minúsculas y con guiones
-(por ejemplo `clientes-perez` o `mudanza-oficina`). Si prefiere no decidirlo
-ahora, usá `ejemplo`.
+**Este paso decide si el sistema se usa o queda abandonado.** Una carpeta vacía no
+engancha a nadie; un proyecto con algo real adentro sí.
 
-Creá `projects/<nombre>/` con estos cinco archivos. Completá lo que la persona
-te haya contado; lo que no sepas, dejalo vacío en vez de inventarlo.
+Preguntale sobre qué está trabajando **esta semana**: un cliente, un tema, un
+asunto pendiente concreto. Que no sea un ejemplo inventado. Charlá dos o tres
+minutos sobre eso —qué es, en qué quedó, qué sigue— y **escribí lo que te cuente**
+en los archivos. Ese es el primer contenido de su memoria.
+
+Usá el tema como nombre de carpeta, en minúsculas y con guiones (por ejemplo
+`clientes-perez` o `mudanza-oficina`). Solo si insiste en no elegir nada, usá
+`ejemplo` — pero intentá primero, porque un proyecto real vale mucho más.
+
+Creá `projects/<nombre>/` con estos cinco archivos. Escribí lo que te haya
+contado; lo que no sepas, dejalo vacío en vez de inventarlo.
 
 `SUMMARY.md`
 
@@ -198,7 +223,30 @@ idioma y sin términos técnicos, estas tres cosas:
 3. Son archivos de texto comunes. Los puede abrir, leer y corregir cuando quiera.
    Si cambia de computadora, copia la carpeta y se lleva todo.
 
+Si dijo que tiene material anterior, agregá un cuarto punto: que sus notas viejas
+quedaron donde estaban, sin tocar, y que vas a buscar ahí cuando el tema lo
+amerite. Si alguna vuelve a aparecer seguido, le armás un proyecto con ella.
+
 Si algo falló, decíselo con claridad en vez de dar la instalación por buena.
+
+---
+
+## Y con lo que ya tenías escrito, ¿qué pasa?
+
+Nada. Se queda donde está, intacto.
+
+La memoria arranca vacía y se llena con lo que vayas trabajando de ahora en
+adelante. Cuando vuelva un tema viejo, tu asistente lo busca en la carpeta que le
+indicaste, y si ves que ese tema aparece seguido, le pedís que le arme un proyecto
+propio. Uno por vez, cuando hace falta, y con vos presente.
+
+Es a propósito: **de meses de notas, la mayoría no se vuelve a usar.** Organizarlo
+todo por adelantado es trabajo sobre material muerto, y obliga a que tu asistente
+adivine cómo agrupar cosas que solo vos sabés cómo se relacionan.
+
+Si en algún momento querés hacer la mudanza completa de una vez, existe
+[ADOPTAR_LO_QUE_YA_TENGO.md](ADOPTAR_LO_QUE_YA_TENGO.md). No es necesario, y no es
+por donde conviene empezar.
 
 ---
 

@@ -2,6 +2,24 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.3.0] — 2026-08-04
+
+### Una sola puerta de entrada: la memoria arranca vacía y el material viejo no se toca
+
+Cambio de criterio, propuesto por el operador antes de la primera instalación con un usuario que tiene historia previa.
+
+Hasta acá, quien llegaba con meses de notas era derivado a `ADOPTAR_LO_QUE_YA_TENGO.md`: una migración que inventaria, agrupa, copia y destila todo de una vez. Ese flujo tiene un problema de fondo que ningún arreglo puntual resuelve — **el asistente tiene que adivinar cómo agrupar material que solo el dueño sabe cómo se relaciona**, y lo hace a ciegas, antes de haber trabajado con él ni una vez. Todos los defectos encontrados en la auditoría (duplicación, pendientes inventados, riesgo de "limpiar" originales) eran defectos de la migración, no de la memoria.
+
+La alternativa es más simple y no tiene ninguno de esos riesgos: **la carpeta arranca vacía y se llena con lo que se va trabajando.** El material anterior no se toca ni para leerlo.
+
+- `INSTALAR_CARPETA.md` pasa a ser la puerta de entrada **para todos**, con o sin historia previa.
+- **Paso 1.5 nuevo**: se pregunta si tiene notas de antes en otra carpeta. Si dice que sí, se anota la ruta y nada más — explícitamente prohibido abrirla, leerla o copiar de ahí.
+- **Sección `## Material anterior`** en el `CLAUDE.md`, solo cuando corresponde: le indica al asistente dónde buscar antes de decir "no sé", le prohíbe reorganizar esa carpeta, y le pide avisar cuando un tema se vuelva recurrente para armarle un proyecto propio. Adopción de a un tema, cuando hace falta y con el dueño presente.
+- **Paso 5 reforzado**: el primer proyecto se arma con contenido real de algo que la persona esté trabajando esa semana, no con una plantilla vacía. Es lo que decide si el sistema se usa o se abandona.
+- `ADOPTAR_LO_QUE_YA_TENGO.md` pasa a ser herramienta opcional y posterior, declarada como "no es por donde conviene empezar".
+
+Resultado: cero riesgo sobre el material previo, porque deja de haber una operación que lo toque.
+
 ## [1.2.4] — 2026-08-04
 
 ### Auditoría del archivo publicado: contradicción entre las dos variantes

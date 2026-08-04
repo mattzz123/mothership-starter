@@ -10,10 +10,11 @@ Tu IA deja de olvidarse de todo entre sesiones. Tus proyectos quedan documentado
 
 **Nivel 1 — en una carpeta.** Nueve archivos de texto adentro de una carpeta tuya. No instala programas, no copia ejecutables, no toca la configuración de tu asistente, no se conecta a ningún lado. Para desinstalar, borrás la carpeta. **Es lo que necesita la mayoría, y funciona por sí solo.**
 
-👉 **[INSTALAR_CARPETA.md](INSTALAR_CARPETA.md)** — si empezás de cero.
-👉 **[ADOPTAR_LO_QUE_YA_TENGO.md](ADOPTAR_LO_QUE_YA_TENGO.md)** — si ya venís trabajando con tu asistente y tenés notas de meses anteriores. Ordena lo que ya escribiste; no borra ni mueve nada.
+👉 **[INSTALAR_CARPETA.md](INSTALAR_CARPETA.md)** — empezá por acá, tengas historia o no. Si ya venís trabajando con tu asistente, tus notas viejas **no se tocan**: quedan donde están y se consultan cuando hace falta.
 
-Ninguno de los dos requiere saber programar.
+Más adelante, y solo si lo necesitás: **[ADOPTAR_LO_QUE_YA_TENGO.md](ADOPTAR_LO_QUE_YA_TENGO.md)** mueve todo tu material anterior al sistema de una vez. No es necesario y no es por donde conviene empezar.
+
+Nada de esto requiere saber programar.
 
 **Nivel 2 — con automatizaciones.** Comandos (`project-init`, `doc-close`) y verificaciones que corren solas al cerrar cada sesión. Instala archivos ejecutables y modifica la configuración de tu asistente de forma permanente, para todas tus conversaciones. Es una decisión aparte: tomala entendiendo qué hace cada pieza. Es lo que se describe abajo.
 
