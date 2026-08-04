@@ -2,6 +2,16 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.2.2] — 2026-08-03
+
+### Adopción de material previo + regla de claves
+
+`INSTALAR_CARPETA.md` asumía carpeta vacía. La mayoría de quien llega no empieza de cero: ya viene trabajando con su asistente y tiene notas sueltas de meses. Instalarle una estructura nueva al lado le deja dos memorias.
+
+- **Nuevo `ADOPTAR_LO_QUE_YA_TENGO.md`**: flujo de inventario → agrupación confirmada → copia → destilado. **No borra, no mueve y no reescribe** ningún archivo del usuario; copia a `projects/<proyecto>/fuentes/` y deja los originales intactos. El inventario se muestra antes de tocar nada y pregunta explícitamente qué material no debe entrar (datos de clientes, información sensible). Prohíbe inventar contenido: lo que no esté claro se pregunta o se deja vacío.
+- Detecta dos variantes: si las notas ya están en una misma carpeta, esa carpeta pasa a ser el espacio de trabajo y no se mueve nada; si están dispersas, se consolida copiando.
+- **Regla de claves en la plantilla `CLAUDE.md`** (en ambos archivos de instalación): nunca escribir una clave, token o contraseña en las notas — solo dónde está guardada. Los archivos de memoria son texto plano, se leen enteros en cada sesión y suelen sincronizarse o versionarse: un secreto ahí queda en el historial para siempre.
+
 ## [1.2.1] — 2026-08-02
 
 ### Nivel 1: instalación en carpeta, sin descargar ni ejecutar nada

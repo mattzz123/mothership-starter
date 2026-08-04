@@ -2,7 +2,9 @@
 
 **Para qué sirve:** para que tu asistente de IA no se olvide de lo que hablaron entre una conversación y la otra. Todo queda anotado en archivos de texto en una carpeta tuya.
 
-**Para quién es este archivo:** para cualquiera. No hace falta saber programar ni abrir una terminal.
+**Para quién es este archivo:** para cualquiera que empiece de cero. No hace falta saber programar ni abrir una terminal.
+
+**Si ya venís trabajando con tu asistente y tenés notas de meses anteriores**, no uses este archivo: usá [ADOPTAR_LO_QUE_YA_TENGO.md](ADOPTAR_LO_QUE_YA_TENGO.md), que ordena lo que ya escribiste en lugar de empezar en blanco.
 
 ---
 
@@ -84,6 +86,11 @@ Escribí en castellano y en lenguaje llano: estas notas las leo yo, no un progra
 Un proyecto es una carpeta dentro de projects/ con SUMMARY.md (de qué se trata),
 FAST_RESUME.md (dónde quedamos), NEXT.md (pendientes), LOG.md (historial) e
 INDEX.md. Copiá la estructura del proyecto que ya existe.
+
+## Claves y contraseñas
+Nunca escribas acá una clave, un token ni una contraseña. Si hace falta dejar
+constancia, anotá dónde está guardada — por ejemplo "en 1Password, ítem tal" —
+nunca el valor.
 
 ## Importante
 - Nada de esto es automático ni obligatorio: si te pido otra cosa, hacé eso.
