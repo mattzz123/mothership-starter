@@ -73,7 +73,22 @@ Usá nombres cortos, en minúscula y con guiones. **Esperá que confirme o corri
 
 ### Paso 3 — Crear la estructura
 
-En la carpeta que corresponda según el Paso 0, creá `CLAUDE.md` con este contenido exacto:
+#### Si ya existe un `CLAUDE.md` en esa carpeta
+
+**No lo reemplaces.** Esa persona ya tiene una forma de trabajar acordada con vos, y probablemente le costó meses llegar a ella. Vale más que lo que trae este archivo.
+
+Hacé esto en cambio:
+
+1. Leelo y mostráselo.
+2. Proponé **sumar**, no cambiar: sus reglas quedan tal cual están, y debajo se agregan las secciones de memoria que le falten — *Al empezar una conversación*, *Al terminar*, *Proyectos nuevos*, *Claves y contraseñas*.
+3. Si algo de lo que él ya tiene escrito **contradice** lo que se agregaría, no decidas vos: mostrale las dos versiones y preguntale con cuál se queda.
+4. Guardá una copia del original como `CLAUDE.md.anterior` antes de tocarlo.
+
+Lo mismo vale si tiene un `CLAUDE.md` general en `~/.claude/`: **no lo toques.** Ese aplica a todas sus conversaciones, no solo a esta carpeta. Lo que hacemos acá vive dentro de la carpeta y termina en la carpeta.
+
+#### Si no existe
+
+Creá `CLAUDE.md` con este contenido exacto:
 
 ```
 # Cómo trabajamos en esta carpeta
@@ -110,7 +125,9 @@ nunca el valor.
 - Antes de reemplazar o mover un archivo de notas, avisame.
 ```
 
-Y `PROJECT_REGISTRY.md`:
+Después, estos dos. Si alguno ya existe, tampoco lo pises: mostrale lo que hay y preguntale antes de agregar nada.
+
+`PROJECT_REGISTRY.md`:
 
 ```
 # Proyectos
@@ -122,7 +139,7 @@ Un renglón por proyecto. Sirve para encontrarlos por su nombre común.
 | | | |
 ```
 
-Y `CROSS_SYNC.md`:
+`CROSS_SYNC.md`:
 
 ```
 # Bitácora general

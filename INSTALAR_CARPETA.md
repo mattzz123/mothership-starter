@@ -47,6 +47,8 @@ Lo que sigue está dirigido al asistente de IA que hace la instalación.
 
 Mostrale a la persona qué vas a crear y dónde, y esperá su confirmación. Si alguno de estos archivos ya existe, **no lo sobrescribas**: avisale y preguntale qué prefiere.
 
+Esto vale especialmente para `CLAUDE.md`. Si ya hay uno en esa carpeta, esa persona ya tiene una forma de trabajar acordada con vos y vale más que lo que trae este archivo: dejá sus reglas tal cual y proponé **sumar** debajo las secciones que le falten, guardando antes una copia como `CLAUDE.md.anterior`. Y si tiene un `CLAUDE.md` general en `~/.claude/`, **no lo toques**: ese aplica a todas sus conversaciones, no solo a esta carpeta.
+
 Esta instalación no toca nada fuera de la carpeta elegida. Si en algún momento parece necesario modificar configuración del sistema, instalar algo, o escribir fuera de esa carpeta, **no lo hagas** — no forma parte de esto.
 
 ### Paso 1 — Elegir la carpeta

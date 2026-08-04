@@ -2,6 +2,16 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.2.3] — 2026-08-04
+
+### El `CLAUDE.md` que ya existe no se reemplaza: se le suma
+
+Defecto encontrado antes de correr la primera adopción real. `ADOPTAR_LO_QUE_YA_TENGO.md` decía "creá `CLAUDE.md` con este contenido exacto", sin contemplar que quien viene trabajando hace meses **muy probablemente ya tenga uno**. Un asistente podía leer esa instrucción como sobrescribir y borrar meses de preferencias acumuladas — exactamente la clase de pérdida silenciosa que el resto del archivo evita para las notas.
+
+- Si ya existe un `CLAUDE.md` en la carpeta: se lee, se le muestra al usuario, y se propone **sumar** las secciones de memoria que falten dejando sus reglas intactas. Copia previa como `CLAUDE.md.anterior`. Si algo de lo suyo contradice lo que se agregaría, el asistente no decide: muestra ambas y pregunta.
+- **Nunca se toca `~/.claude/CLAUDE.md`**, el general del usuario: aplica a todas sus conversaciones, no solo a esa carpeta. Lo que hace el método vive dentro de la carpeta y termina en la carpeta.
+- Misma protección extendida a `PROJECT_REGISTRY.md` y `CROSS_SYNC.md`, y explicitada también en `INSTALAR_CARPETA.md`.
+
 ## [1.2.2] — 2026-08-03
 
 ### Adopción de material previo + regla de claves
