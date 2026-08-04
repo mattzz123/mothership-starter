@@ -2,6 +2,22 @@
 
 Todos los cambios notables a este proyecto se documentan acá.
 
+## [1.2.4] — 2026-08-04
+
+### Auditoría del archivo publicado: contradicción entre las dos variantes
+
+Revisión línea por línea del archivo tal como está publicado, antes de correr la primera adopción real. Apareció una contradicción interna, justo en la variante más probable.
+
+El Paso 0 dice que si las notas ya están en una carpeta, esa carpeta pasa a ser el espacio de trabajo con **"cero movimiento de archivos"**. Pero el Paso 4 ordenaba, sin condición, copiar los originales de cada grupo a `projects/<proyecto>/fuentes/`. En esa variante los originales ya están ahí: el resultado era **cada archivo duplicado** — el original en la raíz y una copia dentro del proyecto.
+
+Consecuencias: el usuario ve sus notas dos veces; si edita una, la otra queda vieja sin que nadie sepa cuál es la buena; y —lo más grave— un asistente que note la duplicación puede decidir "limpiar" borrando los originales. Una contradicción nuestra abría el camino al único desenlace destructivo que todo el archivo intenta evitar.
+
+- **Variante "envolver en el lugar": no se copia nada.** Los archivos se quedan donde están y el `INDEX.md` del proyecto registra cuáles le pertenecen.
+- **Variante "consolidar": se copia a `fuentes/`**, como antes, y los originales quedan intactos en su ubicación.
+- Prohibición explícita de duplicar dentro de la misma carpeta y de borrar un original para resolver una duplicación. Si aparecen repetidos, se avisa y decide el usuario.
+
+Resto de la auditoría, sin hallazgos: no hay verbos destructivos usados como instrucción (todas las apariciones son prohibiciones), no se escribe fuera de la carpeta elegida, no hay red ni envío de datos, y no se instala ni se ejecuta nada.
+
 ## [1.2.3] — 2026-08-04
 
 ### El `CLAUDE.md` que ya existe no se reemplaza: se le suma

@@ -12,7 +12,8 @@ Si arrancás sin nada, usá [INSTALAR_CARPETA.md](INSTALAR_CARPETA.md) en lugar 
 |---|---|
 | Lista lo que ya tenés y te lo muestra antes de tocar nada | **No borra ni mueve ningún archivo tuyo** |
 | Agrupa tus notas por tema, con tu confirmación | No reescribe lo que ya escribiste |
-| **Copia** tus archivos a la estructura nueva | No manda nada a ningún servidor |
+| Agrega archivos nuevos de índice y resumen | No duplica tus archivos ni te deja dos versiones de lo mismo |
+| Si tus notas están dispersas, las **copia** a un lugar único | No manda nada a ningún servidor |
 | Escribe un resumen por tema, leyendo lo que ya está | No instala programas ni nada ejecutable |
 | Los originales quedan exactamente donde están | No modifica la configuración de tu asistente |
 
@@ -154,15 +155,20 @@ Formato: fecha — proyecto — qué cambió — por qué.
 
 Para cada grupo confirmado, creá `projects/<nombre>/` y adentro:
 
-**a) `fuentes/`** — copiá ahí los archivos originales de ese grupo, con el nombre que ya tienen. Es el material crudo: no lo edites ni lo resumas.
+**a) El material crudo — y acá cambia según la variante del Paso 0:**
+
+- **Variante "envolver en el lugar"** (las notas ya estaban en esta carpeta): **no copies nada.** Los archivos se quedan donde están y listo. Anotá en el `INDEX.md` del proyecto cuáles de los archivos de la carpeta pertenecen a él, con su nombre. Copiarlos crearía una segunda versión de cada uno: dos archivos con el mismo contenido, y después nadie sabe cuál es el bueno.
+- **Variante "consolidar"** (las notas estaban dispersas): creá `fuentes/` y **copiá** ahí los archivos de ese grupo, con el nombre que ya tienen. Los originales quedan intactos donde estaban. No los edites ni los resumas.
+
+En ningún caso dupliques un archivo dentro de la misma carpeta, y en ningún caso borres un original para "limpiar" una duplicación. Si ves archivos repetidos, decíselo y que decida él.
 
 **b) Los cinco archivos del proyecto**, escritos **leyendo** ese material:
 
 - `SUMMARY.md` — de qué se trata, en dos o tres líneas, y qué se quiere lograr.
 - `FAST_RESUME.md` — **dónde quedó la cosa**, según lo último que aparezca escrito. Tres o cuatro líneas.
 - `NEXT.md` — los pendientes que aparezcan mencionados. Si no hay ninguno claro, dejalo vacío.
-- `LOG.md` — el historial. Si los archivos tienen fechas, respetalas y ordená de más nuevo a más viejo. Si no las tienen, una sola entrada de hoy: "Material previo incorporado desde `fuentes/`".
-- `INDEX.md` — qué hay en la carpeta, incluyendo qué archivos quedaron en `fuentes/`.
+- `LOG.md` — el historial. Si los archivos tienen fechas, respetalas y ordená de más nuevo a más viejo. Si no las tienen, una sola entrada de hoy: "Material previo incorporado".
+- `INDEX.md` — qué hay en el proyecto, y **dónde está el material original**: los nombres de los archivos de la carpeta que le pertenecen (variante "envolver"), o qué quedó en `fuentes/` (variante "consolidar").
 
 **Reglas del destilado, importantes:**
 
